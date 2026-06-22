@@ -2,7 +2,7 @@ import { EntityId } from "@/backend/modules/shared";
 
 export class ActionId extends EntityId {
   private constructor(value: string) {
-    super(value, "Action id");
+    super(value);
   }
 
   static fromPrimitives(value: string): ActionId {

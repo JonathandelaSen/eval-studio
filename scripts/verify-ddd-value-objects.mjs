@@ -18,7 +18,112 @@ const primitiveKeywordKinds = new Set([
   ts.SyntaxKind.AnyKeyword,
 ]);
 
-const baseValueObjects = ["ValueObject", "EntityId", "IsoDate", "OptionalIsoDate", "Timestamp", "UserId"];
+const baseValueObjects = ["ValueObject", "EntityId", "StringId", "IsoDate", "OptionalIsoDate", "Timestamp", "UserId"];
+
+// Function to collect all Value Object names from the codebase
+async function collectAllValueObjectNames(rootDir) {
+  const modulesDir = path.join(rootDir, "src/backend/modules");
+  const files = await walkFiles(modulesDir);
+  const voFiles = files.filter(
+    (file) =>
+      file.includes("/domain/value-objects/") &&
+      file.endsWith(".value-object.ts") &&
+      !file.endsWith(".test.ts")
+  );
+
+  const voNames = new Set(["ValueObject", "EntityId", "StringId", "IsoDate", "OptionalIsoDate", "Timestamp", "UserId"]);
+  for (const file of voFiles) {
+    const source = await readFile(file, "utf8");
+    const sourceFile = ts.createSourceFile(file, source, ts.ScriptTarget.Latest, true);
+    for (const statement of sourceFile.statements) {
+      if (
+        ts.isClassDeclaration(statement) &&
+        statement.name &&
+        isExported(statement)
+      ) {
+        voNames.add(statement.name.text);
+      }
+    }
+  }
+  return voNames;
+}
+
+function checkTypeNodeForNullableVO(typeNode, file, sourceFile, violations, voNames, contextDescription) {
+  if (!typeNode) return;
+
+  if (ts.isUnionTypeNode(typeNode)) {
+    let hasNullish = false;
+    let voName = null;
+    let offendingNode = null;
+
+    for (const childType of typeNode.types) {
+      if (
+        childType.kind === ts.SyntaxKind.NullKeyword ||
+        childType.kind === ts.SyntaxKind.UndefinedKeyword
+      ) {
+        hasNullish = true;
+      } else if (ts.isTypeReferenceNode(childType)) {
+        const name = childType.typeName.getText(sourceFile);
+        if (voNames.has(name)) {
+          voName = name;
+          offendingNode = childType;
+        }
+      }
+    }
+
+    if (hasNullish && voName) {
+      addViolation(
+        violations,
+        file,
+        "value-object-union-nullish",
+        `Value Object ${voName} is not allowed to be combined with | undefined or | null in ${contextDescription}. Create a Nullable version of the Value Object instead (e.g. ${voName}Nullable).`,
+        sourceFile,
+        offendingNode
+      );
+    }
+  }
+
+  typeNode.forEachChild((child) =>
+    checkTypeNodeForNullableVO(child, file, sourceFile, violations, voNames, contextDescription)
+  );
+}
+
+function checkTypesForNullableVO(sourceFile, file, violations, voNames) {
+  const visit = (node) => {
+    let shouldCheck = false;
+    let contextDescription = "";
+
+    if (ts.isPropertyDeclaration(node) && node.type) {
+      shouldCheck = true;
+      contextDescription = `property "${node.name.getText(sourceFile)}"`;
+    } else if (ts.isParameter(node) && node.type) {
+      shouldCheck = true;
+      contextDescription = `parameter "${node.name.getText(sourceFile)}"`;
+    } else if (ts.isPropertySignature(node) && node.type) {
+      let insidePrimitives = false;
+      let parent = node.parent;
+      while (parent) {
+        if (ts.isInterfaceDeclaration(parent) && parent.name.text.endsWith("Primitives")) {
+          insidePrimitives = true;
+          break;
+        }
+        parent = parent.parent;
+      }
+      if (!insidePrimitives) {
+        shouldCheck = true;
+        contextDescription = `interface property "${node.name.getText(sourceFile)}"`;
+      }
+    }
+
+    if (shouldCheck) {
+      checkTypeNodeForNullableVO(node.type, file, sourceFile, violations, voNames, contextDescription);
+    }
+
+    node.forEachChild(visit);
+  };
+
+  visit(sourceFile);
+}
 
 async function walkFiles(dir) {
   let entries;
@@ -203,6 +308,11 @@ function isPrimitiveLikeTypeNode(typeNode, decls, visited = new Set()) {
     if (name === "Array" || name === "ReadonlyArray") {
       return (typeNode.typeArguments ?? []).every((arg) => isPrimitiveLikeTypeNode(arg, decls, visited));
     }
+    // Opaque maps (e.g. Record<string, unknown>) are boundary payloads, not
+    // structured composites of inner value objects.
+    if (name === "Record") {
+      return (typeNode.typeArguments ?? []).every((arg) => isPrimitiveLikeTypeNode(arg, decls, visited));
+    }
     if (decls.interfaces.has(name)) return false;
     if (decls.aliases.has(name)) {
       if (visited.has(name)) return false;
@@ -224,22 +334,33 @@ function isNullishTypeNode(typeNode) {
 }
 
 
-function isValueObjectFieldType(typeNode, decls) {
+function isValueObjectFieldType(typeNode, decls, visited = new Set()) {
   if (!typeNode) return false;
-  if (ts.isParenthesizedTypeNode(typeNode)) return isValueObjectFieldType(typeNode.type, decls);
-  if (ts.isTypeOperatorNode(typeNode)) return isValueObjectFieldType(typeNode.type, decls);
-  if (ts.isArrayTypeNode(typeNode)) return isValueObjectFieldType(typeNode.elementType, decls);
+  if (ts.isParenthesizedTypeNode(typeNode)) return isValueObjectFieldType(typeNode.type, decls, visited);
+  if (ts.isTypeOperatorNode(typeNode)) return isValueObjectFieldType(typeNode.type, decls, visited);
+  if (ts.isArrayTypeNode(typeNode)) return isValueObjectFieldType(typeNode.elementType, decls, visited);
   if (ts.isUnionTypeNode(typeNode)) {
     const meaningful = typeNode.types.filter((member) => !isNullishTypeNode(member));
-    return meaningful.length > 0 && meaningful.every((member) => isValueObjectFieldType(member, decls));
+    return meaningful.length > 0 && meaningful.every((member) => isValueObjectFieldType(member, decls, visited));
   }
   if (ts.isTypeReferenceNode(typeNode)) {
     const name = typeNode.typeName.getText();
     if (name === "Array" || name === "ReadonlyArray") {
-      return (typeNode.typeArguments ?? []).every((arg) => isValueObjectFieldType(arg, decls));
+      return (typeNode.typeArguments ?? []).every((arg) => isValueObjectFieldType(arg, decls, visited));
     }
     if (name.endsWith("Primitives")) {
       return false;
+    }
+    // A local interface (e.g. *Attributes) is a plain blob, not a value object.
+    if (decls.interfaces.has(name)) {
+      return false;
+    }
+    // Resolve local type aliases so a union/blob hiding behind an alias
+    // (e.g. type FooValue = FooAttributes | null) is not mistaken for a VO.
+    if (decls.aliases.has(name)) {
+      if (visited.has(name)) return false;
+      visited.add(name);
+      return isValueObjectFieldType(decls.aliases.get(name), decls, visited);
     }
     return true;
   }
@@ -291,6 +412,102 @@ function checkCompositeStoresValueObjects(sourceFile, file, valueObject, violati
     }
   }
 }
+
+function checkThrows(sourceFile, file, valueObject, violations) {
+  const className = valueObject.name.text;
+  for (const member of valueObject.members) {
+    let checkBody = null;
+    if (
+      ts.isMethodDeclaration(member) ||
+      ts.isConstructorDeclaration(member) ||
+      ts.isGetAccessorDeclaration(member) ||
+      ts.isSetAccessorDeclaration(member)
+    ) {
+      checkBody = member.body;
+    } else if (
+      ts.isPropertyDeclaration(member) &&
+      member.initializer &&
+      (ts.isArrowFunction(member.initializer) || ts.isFunctionExpression(member.initializer))
+    ) {
+      checkBody = member.initializer.body;
+    }
+
+    if (checkBody) {
+      const visit = (node) => {
+        if (ts.isThrowStatement(node)) {
+          let isGenericError = false;
+          const expr = node.expression;
+          if (expr && ts.isNewExpression(expr)) {
+            if (ts.isIdentifier(expr.expression) && expr.expression.text === "Error") {
+              isGenericError = true;
+            }
+          } else if (expr && ts.isCallExpression(expr)) {
+            if (ts.isIdentifier(expr.expression) && expr.expression.text === "Error") {
+              isGenericError = true;
+            }
+          }
+          if (isGenericError) {
+            addViolation(
+              violations,
+              file,
+              "value-object-generic-throw",
+              `Value object ${className} cannot throw generic Error. Use a custom domain error class (e.g. ${className}Error) defined in the same file.`,
+              sourceFile,
+              node
+            );
+          }
+        }
+        node.forEachChild(visit);
+      };
+      checkBody.forEachChild(visit);
+    }
+  }
+}
+
+function checkLiteralsInMethods(sourceFile, file, valueObject, violations) {
+  const className = valueObject.name.text;
+  for (const member of valueObject.members) {
+    let checkBody = null;
+    if (
+      ts.isMethodDeclaration(member) ||
+      ts.isConstructorDeclaration(member) ||
+      ts.isGetAccessorDeclaration(member) ||
+      ts.isSetAccessorDeclaration(member)
+    ) {
+      checkBody = member.body;
+    } else if (
+      ts.isPropertyDeclaration(member) &&
+      member.initializer &&
+      (ts.isArrowFunction(member.initializer) || ts.isFunctionExpression(member.initializer))
+    ) {
+      checkBody = member.initializer.body;
+    }
+
+    if (checkBody) {
+      const visit = (node) => {
+        const isLiteral =
+          ts.isStringLiteral(node) ||
+          ts.isNumericLiteral(node) ||
+          ts.isNoSubstitutionTemplateLiteral(node) ||
+          node.kind === ts.SyntaxKind.BigIntLiteral;
+
+        if (isLiteral) {
+          addViolation(
+            violations,
+            file,
+            "value-object-method-literal",
+            `Value object ${className} method or constructor cannot use literals. Use constants (e.g. from an exported constant array or object) instead.`,
+            sourceFile,
+            node
+          );
+        }
+        node.forEachChild(visit);
+      };
+      checkBody.forEachChild(visit);
+    }
+  }
+}
+
 
 function expressionUsesToPrimitives(node) {
   let found = false;
@@ -397,6 +614,24 @@ function checkToPrimitivesComposes(sourceFile, file, valueObject, violations) {
         );
       }
     }
+    return;
+  }
+
+  // toPrimitives() does not return an object literal (e.g. returns `this.value`
+  // directly). A composite VO must still recompose its inner value objects, so
+  // the returned expression has to be produced by inner toPrimitives() calls.
+  const composed =
+    expressionUsesToPrimitives(expression) ||
+    referencesComposingGetter(expression, composingGetters);
+  if (!composed) {
+    addViolation(
+      violations,
+      file,
+      "value-object-to-primitives-not-composed",
+      `Composite value object ${className}.toPrimitives() returns "${expression.getText()}" without composing inner value objects via their toPrimitives(). A composite VO must store its attributes as inner value objects and return their toPrimitives() output (see docs/architecture/value-objects.md).`,
+      sourceFile,
+      expression
+    );
   }
 }
 
@@ -541,6 +776,8 @@ function checkValueObjectClass(sourceFile, file, valueObject, violations) {
 
   checkCompositeStoresValueObjects(sourceFile, file, valueObject, violations);
   checkToPrimitivesComposes(sourceFile, file, valueObject, violations);
+  checkThrows(sourceFile, file, valueObject, violations);
+  checkLiteralsInMethods(sourceFile, file, valueObject, violations);
 
   // Enforce semantic constructors and boolean checkers for enum-like VOs
   const enumKeys = getEnumKeysFromSourceFile(sourceFile);
@@ -618,11 +855,13 @@ export async function findValueObjectViolations({ rootDir = repoRoot } = {}) {
     )
     .sort();
 
+  const voNames = await collectAllValueObjectNames(rootDir);
   const violations = [];
   for (const file of files) {
     const source = await readFile(path.join(rootDir, file), "utf8");
     const sourceFile = parseSource(source, file);
     checkValueObjectFile(sourceFile, file, violations);
+    checkTypesForNullableVO(sourceFile, file, violations, voNames);
   }
 
   return { violations, fileCount: files.length };

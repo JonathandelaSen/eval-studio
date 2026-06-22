@@ -2,6 +2,16 @@
 
 Eval Studio is a local evaluation workspace for reviewing, scoring, comparing, and running repeatable evaluations of AI-backed product behavior.
 
+## Bounded Contexts
+
+**Execution** (`eval-execution`):
+Executing **Runs** and capturing their **Results**. Owns **Run**, **Result**, and the machinery that runs a **Case** against an AI provider.
+
+**Workspace** (`eval-workspace`):
+Defining and reviewing the artifacts of evaluation. Owns **Case**, **Suite**, **Annotation**, and the workspace snapshot.
+
+A bounded context is named for the capability it covers, not for a single entity it contains.
+
 ## Language
 
 **Action**:

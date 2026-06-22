@@ -1,4 +1,5 @@
-export interface DomainEvent {
+export interface DomainEvent<TPrimitives = unknown> {
   readonly eventName: string;
-  readonly occurredAt: string;
+  readonly occurredAt: Date;
+  toPrimitives(): TPrimitives;
 }

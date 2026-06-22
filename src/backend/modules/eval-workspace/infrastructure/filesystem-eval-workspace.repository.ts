@@ -1,33 +1,26 @@
 import { promises as fs } from "node:fs";
 import path from "node:path";
 import {
-  annotationSchema,
-  caseSchema,
-  manifestSchema,
-  resultSchema,
-  runSchema,
-  suiteSchema,
-  type EvalAnnotation as EvalAnnotationPrimitives,
-  type EvalCase,
-  type EvalResult,
-  type EvalRun,
-  type EvalSuite,
+  EvalResult,
+  EvalRun,
+  type EvalResultPrimitives,
+  type EvalRunPrimitives,
+} from "@/backend/modules/eval-execution";
+import {
+  EvalAnnotation,
+  type EvalAnnotationPrimitives,
+} from "../domain/entities/eval-annotation.entity";
+import {
+  EvalWorkspaceSnapshot,
+  type EvalCasePrimitives,
+  type EvalManifestPrimitives,
+  type EvalSuitePrimitives,
+  type EvalWorkspaceSnapshotPrimitives,
   type WorkspaceDiagnostic,
-  type EvalWorkspaceSnapshot as EvalWorkspaceSnapshotPrimitives,
-} from "../domain/artifacts";
-import { EvalAnnotation } from "../domain/entities/eval-annotation.entity";
-import { EvalWorkspaceSnapshot } from "../domain/entities/eval-workspace-snapshot.entity";
+} from "../domain/entities/eval-workspace-snapshot.entity";
 import type { EvalWorkspaceRepository } from "../domain/repositories/eval-workspace.repository";
 
 type ArtifactKind = "suite" | "case" | "run" | "result" | "annotation";
-
-const schemaByKind = {
-  suite: suiteSchema,
-  case: caseSchema,
-  run: runSchema,
-  result: resultSchema,
-  annotation: annotationSchema,
-};
 
 export class FilesystemEvalWorkspaceRepository
   implements EvalWorkspaceRepository
@@ -103,7 +96,7 @@ export class FilesystemEvalWorkspaceRepository
     const file = this.safeJoin(root, "manifest.json");
     try {
       const raw = await fs.readFile(file, "utf8");
-      return manifestSchema.parse(JSON.parse(raw));
+      return this.parseManifest(JSON.parse(raw));
     } catch (error) {
       diagnostics.push({
         path: this.relative(file),
@@ -130,10 +123,10 @@ export class FilesystemEvalWorkspaceRepository
       try {
         const raw = await fs.readFile(file, "utf8");
         const parsed = this.parseKind(kind, JSON.parse(raw));
-        if (kind === "suite") snapshot.suites.push(parsed as EvalSuite);
-        if (kind === "case") snapshot.cases.push(parsed as EvalCase);
-        if (kind === "run") snapshot.runs.push(parsed as EvalRun);
-        if (kind === "result") snapshot.results.push(parsed as EvalResult);
+        if (kind === "suite") snapshot.suites.push(parsed as EvalSuitePrimitives);
+        if (kind === "case") snapshot.cases.push(parsed as EvalCasePrimitives);
+        if (kind === "run") snapshot.runs.push(parsed as EvalRunPrimitives);
+        if (kind === "result") snapshot.results.push(parsed as EvalResultPrimitives);
         if (kind === "annotation") {
           snapshot.annotations.push(parsed as EvalAnnotationPrimitives);
         }
@@ -156,7 +149,58 @@ export class FilesystemEvalWorkspaceRepository
   }
 
   private parseKind(kind: ArtifactKind, value: unknown) {
-    return schemaByKind[kind].parse(value);
+    if (kind === "suite") return this.parseSuite(value);
+    if (kind === "case") return this.parseCase(value);
+    if (kind === "run") return EvalRun.fromPrimitives(value as Parameters<typeof EvalRun.fromPrimitives>[0]).toPrimitives();
+    if (kind === "result") return EvalResult.fromPrimitives(value as Parameters<typeof EvalResult.fromPrimitives>[0]).toPrimitives();
+    return EvalAnnotation.fromPrimitives(value as EvalAnnotationPrimitives).toPrimitives();
+  }
+
+  private parseManifest(value: unknown): EvalManifestPrimitives {
+    this.assertRecord(value, "manifest");
+    this.assertString(value.workspaceName, "manifest.workspaceName");
+    this.assertString(value.createdAt, "manifest.createdAt");
+    return value as EvalManifestPrimitives;
+  }
+
+  private parseSuite(value: unknown): EvalSuitePrimitives {
+    this.assertRecord(value, "suite");
+    this.assertString(value.suiteId, "suite.suiteId");
+    this.assertString(value.actionId, "suite.actionId");
+    this.assertString(value.name, "suite.name");
+    this.assertStringArray(value.caseIds, "suite.caseIds");
+    return value as EvalSuitePrimitives;
+  }
+
+  private parseCase(value: unknown): EvalCasePrimitives {
+    this.assertRecord(value, "case");
+    this.assertString(value.caseId, "case.caseId");
+    this.assertString(value.actionId, "case.actionId");
+    this.assertString(value.name, "case.name");
+    this.assertString(value.createdAt, "case.createdAt");
+    this.assertRecord(value.renderedPrompt, "case.renderedPrompt");
+    this.assertString(value.renderedPrompt.format, "case.renderedPrompt.format");
+    return value as EvalCasePrimitives;
+  }
+
+  private assertRecord(value: unknown, label: string): asserts value is Record<string, unknown> {
+    if (!value || typeof value !== "object" || Array.isArray(value)) {
+      throw new Error(`${label} must be an object.`);
+    }
+  }
+
+
+
+  private assertString(value: unknown, label: string) {
+    if (typeof value !== "string") {
+      throw new Error(`${label} must be a string.`);
+    }
+  }
+
+  private assertStringArray(value: unknown, label: string) {
+    if (!Array.isArray(value) || value.some((entry) => typeof entry !== "string")) {
+      throw new Error(`${label} must be a string array.`);
+    }
   }
 
   private async findJsonFiles(directory: string): Promise<string[]> {

@@ -24,10 +24,10 @@ describe("SaveAnnotationUseCase", () => {
       },
     };
 
+    const caseUuid = "550e8400-e29b-41d4-a716-446655440000";
     const result = await new SaveAnnotationUseCase(repo).execute({
-      schemaVersion: "1",
       resultId: "result-1",
-      caseId: "case-1",
+      caseId: caseUuid,
       runId: "run-1",
       updatedAt: "2026-06-22T00:00:00.000Z",
       score: 4,
@@ -53,11 +53,11 @@ describe("SaveAnnotationUseCase", () => {
       saveAnnotation: async (annotation) => annotation,
     };
 
+    const caseUuid = "550e8400-e29b-41d4-a716-446655440000";
     await expect(
       new SaveAnnotationUseCase(repo).execute({
-        schemaVersion: "1",
         resultId: "result-1",
-        caseId: "case-1",
+        caseId: caseUuid,
         runId: "run-1",
         updatedAt: "2026-06-22T00:00:00.000Z",
         score: 9,

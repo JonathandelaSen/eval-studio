@@ -1,13 +1,16 @@
-import { describe, expect, it } from "vitest";
+import { describe, expectTypeOf, it } from "vitest";
 import type { DomainEvent } from "./domain-event";
 
 describe("DomainEvent", () => {
-  it("defines the event contract", () => {
-    const event: DomainEvent = {
-      eventName: "test.event",
-      occurredAt: "2026-06-22T00:00:00.000Z",
-    };
-
-    expect(event.eventName).toBe("test.event");
+  it("carries event details", () => {
+    class TestEvent implements DomainEvent {
+      readonly eventName = "test.event";
+      readonly occurredAt = new Date();
+      toPrimitives(): Record<string, unknown> {
+        return { ok: true };
+      }
+    }
+    const event = new TestEvent();
+    expectTypeOf(event.eventName).toEqualTypeOf<string>();
   });
 });

@@ -109,9 +109,7 @@ A suite groups cases for one product action.
   "actionId": "job_match_analysis.score_cv_against_offer",
   "name": "Job match scoring",
   "description": "Cases for scoring a CV against a job description.",
-  "caseIds": [
-    "job-match-analysis.score_cv_against_offer.senior-backend-node"
-  ]
+  "caseIds": ["job-match-analysis.score_cv_against_offer.senior-backend-node"]
 }
 ```
 
@@ -204,9 +202,7 @@ A run is one experiment over one or more cases.
   "actionId": "job_match_analysis.score_cv_against_offer",
   "producer": "eval-studio",
   "createdAt": "2026-06-22T11:15:00.000Z",
-  "caseIds": [
-    "job-match-analysis.score_cv_against_offer.senior-backend-node"
-  ],
+  "caseIds": ["job-match-analysis.score_cv_against_offer.senior-backend-node"],
   "runtime": {
     "provider": "openai",
     "model": "gpt-4.1",
@@ -314,10 +310,7 @@ Annotations are editable human judgments for a result.
   "updatedAt": "2026-06-22T11:30:00.000Z",
   "score": 4,
   "comment": "Good analysis overall, but slightly too generous on the missing Node.js requirement.",
-  "tags": [
-    "missed_requirement",
-    "overconfident_score"
-  ]
+  "tags": ["missed_requirement", "overconfident_score"]
 }
 ```
 
@@ -636,7 +629,7 @@ Likely value objects:
 
 - `SuiteId`
 - `CaseId`
-- `RunId`
+- `EvalRunId`
 - `ResultId`
 - `ActionId`
 - `ProviderName`
@@ -872,12 +865,9 @@ Source scripts in Fabra:
 Scripts that probably need adaptation or removal for Eval Studio:
 
 ```txt
-/Users/jon/DEV/repos/fabra/scripts/verify-ddd-supabase-repository-tables.mjs
 /Users/jon/DEV/repos/fabra/scripts/verify-technical-observability-boundaries.mjs
 /Users/jon/DEV/repos/fabra/scripts/verify-shared-component-tones.mjs
 ```
-
-`verify-ddd-supabase-repository-tables.mjs` is Fabra/Supabase-specific and should not be required for Eval Studio unless the app later adds a database. Eval Studio's equivalent should verify filesystem repository boundaries instead.
 
 Recommended `package.json` scripts for Eval Studio:
 

@@ -105,7 +105,7 @@ function NewRunPanel({ snapshot }: { snapshot: EvalWorkspaceResponse }) {
   const defaultCaseIds = snapshot.suites[0]?.caseIds ?? snapshot.cases
     .filter((testCase) => testCase.actionId === firstAction)
     .map((testCase) => testCase.caseId);
-  const [name, setName] = React.useState("Mock prompt replay");
+  const [name, setName] = React.useState("Mock run");
   const [actionId, setActionId] = React.useState(firstAction);
   const [model, setModel] = React.useState("mock-evaluator");
   const [submitting, setSubmitting] = React.useState(false);
@@ -140,7 +140,7 @@ function NewRunPanel({ snapshot }: { snapshot: EvalWorkspaceResponse }) {
     <Card>
       <CardHeader>
         <CardTitle>Create Run</CardTitle>
-        <CardDescription>Prompt replay with the mock provider.</CardDescription>
+        <CardDescription>Run with the mock provider.</CardDescription>
       </CardHeader>
       <CardContent className="flex flex-col gap-2">
         <Input
@@ -300,7 +300,6 @@ function RunDetail({
               <CardDescription className="mt-1 break-all">{run.runId}</CardDescription>
             </div>
             <div className="flex gap-2">
-              <LabelBadge>{run.executionMode ?? "baseline"}</LabelBadge>
               <LabelBadge variant="secondary">{run.runtime?.provider ?? run.producer}</LabelBadge>
             </div>
           </div>
@@ -408,7 +407,6 @@ function ResultReview({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          schemaVersion: "1",
           resultId: result.resultId,
           caseId: result.caseId,
           runId: result.runId,

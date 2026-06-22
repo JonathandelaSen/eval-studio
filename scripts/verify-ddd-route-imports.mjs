@@ -79,10 +79,7 @@ async function findRouteImportViolations() {
     .filter((f) => !f.endsWith(".test.ts"))
     .sort();
 
-  const reExportShims = new Set([
-    "src/lib/cv-profile.ts",
-    "src/lib/cv-templates.ts",
-  ]);
+  const reExportShims = new Set([]);
 
   const violations = [];
   for (const file of files) {

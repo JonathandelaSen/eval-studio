@@ -10,7 +10,7 @@ export class MockEvalProviderRepository implements EvalProviderRepository {
     const rawOutput = JSON.stringify(
       {
         provider: "mock",
-        model: input.model,
+        model: input.model.toPrimitives(),
         message: "Deterministic mock output from Eval Studio.",
         score: 3,
       },

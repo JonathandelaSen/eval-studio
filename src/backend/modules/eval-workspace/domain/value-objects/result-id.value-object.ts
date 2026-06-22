@@ -1,10 +1,10 @@
-import { EntityId } from "@/backend/modules/shared";
-
-export class ResultId extends EntityId {
+import { StringId } from "@/backend/modules/shared";
+ 
+export class ResultId extends StringId {
   private constructor(value: string) {
-    super(value, "Result id");
+    super(value);
   }
-
+ 
   static fromPrimitives(value: string): ResultId {
     return new ResultId(value);
   }

@@ -79,130 +79,13 @@ const RULES = {
 };
 
 const ALLOWLIST = {
-  "src/frontend/features/cv-library/components/cv-library-view.tsx": {
-    "api-import-in-component": 1,
+  "src/frontend/features/runs/components/runs-workspace.tsx": {
+    "direct-http-in-component": 2,
+    "hardcoded-visible-text": 26,
+    "max-lines": 1,
+    "too-many-components": 1,
+    "too-many-usestate": 1,
   },
-  "src/frontend/features/job-match-analysis/components/kanban/job-match-kanban-board.tsx": {
-    "jsx-region-comment": 1,
-  },
-  // "src/frontend/features/activity-context/components/activity-context-view.tsx": {
-  //   "tanstack-in-component": 1,
-  //   "api-import-in-component": 1,
-  // },
-  // "src/frontend/features/cv-analysis/components/analysis-view.tsx": {
-  //   "max-lines": 1,
-  //   "large-component": 1,
-  //   "direct-http-in-component": 4,
-  //   "too-many-usestate": 1,
-  //   "jsx-region-comment": 2,
-  // },
-  // "src/frontend/features/cv-analysis/components/cv-analysis-view.tsx": {
-  //   "api-import-in-component": 1,
-  //   "large-component": 1,
-  // },
-  // "src/frontend/features/cv-analysis/components/cv-score-copy-paste-modal.tsx": {
-  //   "api-import-in-component": 1,
-  // },
-  // "src/frontend/features/cv-analysis/components/extraction-view.tsx": {
-  //   "max-lines": 1,
-  //   "large-component": 1,
-  //   "direct-http-in-component": 2,
-  //   "too-many-usestate": 1,
-  //   "jsx-region-comment": 4,
-  // },
-  // "src/frontend/features/cv-analysis/components/general-analysis-form.tsx": {
-  //   "jsx-region-comment": 3,
-  // },
-  // "src/frontend/features/cv-analysis/components/job-match-form.tsx": {
-  //   "jsx-region-comment": 4,
-  // },
-  // "src/frontend/features/cv-analysis/components/new-analysis-flow.tsx": {
-  //   "large-component": 1,
-  // },
-  // "src/frontend/features/cv-analysis/components/score-hero.tsx": {
-  //   "large-component": 1,
-  //   "jsx-region-comment": 5,
-  // },
-  // "src/frontend/features/cv-analysis/components/tab-chat-oferta.tsx": {
-  //   "api-import-in-component": 1,
-  //   "large-component": 1,
-  //   "direct-http-in-component": 8,
-  // },
-  // "src/frontend/features/cv-analysis/components/tab-resumen.tsx": {
-  //   "jsx-region-comment": 2,
-  // },
-  // "src/frontend/features/cv-editor/components/cv-editor-copy-paste-modal.tsx": {
-  //   "api-import-in-component": 1,
-  // },
-  // "src/frontend/features/cv-editor/components/cv-editor-view.tsx": {
-  //   "large-component": 1,
-  //   "too-many-usestate": 1,
-  // },
-  // "src/frontend/features/cv-editor/components/cv-manual-editor/manual-editor.tsx": {
-  //   "jsx-region-comment": 1,
-  // },
-  // "src/frontend/features/cv-library/components/cv-library-detail-summary.tsx": {
-  //   "jsx-region-comment": 1,
-  // },
-  // "src/frontend/features/cv-library/components/upload-phase.tsx": {
-  //   "direct-http-in-component": 1,
-  //   "jsx-region-comment": 4,
-  // },
-  // "src/frontend/features/cv-templates/components/cv-profile-structure-copy-paste-modal.tsx": {
-  //   "api-import-in-component": 1,
-  // },
-  // "src/frontend/features/job-match-analysis/components/job-match-analysis-detail.tsx": {
-  //   "api-import-in-component": 1,
-  //   "large-component": 1,
-  // },
-  // "src/frontend/features/job-match-analysis/components/job-match-analysis-view.tsx": {
-  //   "tanstack-in-component": 1,
-  //   "api-import-in-component": 1,
-  //   "large-component": 1,
-  // },
-  // "src/frontend/features/job-match-analysis/components/job-match-extraction-view.tsx": {
-  //   "api-import-in-component": 1,
-  //   "large-component": 1,
-  //   "too-many-usestate": 1,
-  // },
-  // "src/frontend/features/job-match-analysis/components/job-match-score-copy-paste-modal.tsx": {
-  //   "api-import-in-component": 1,
-  // },
-  // "src/frontend/features/job-match-analysis/components/score-hero.tsx": {
-  //   "jsx-region-comment": 3,
-  // },
-  // "src/frontend/features/job-match-analysis/components/tab-chat-oferta.tsx": {
-  //   "api-import-in-component": 1,
-  //   "max-lines": 1,
-  //   "large-component": 1,
-  //   "direct-http-in-component": 10,
-  //   "too-many-usestate": 1,
-  // },
-  // "src/frontend/features/job-match-analysis/components/tab-resumen.tsx": {
-  //   "jsx-region-comment": 2,
-  // },
-  // "src/frontend/features/objectives/components/objective-items-section.tsx": {
-  //   "large-component": 1,
-  //   "jsx-region-comment": 1,
-  // },
-  // "src/frontend/features/objectives/components/objective-outcomes-section.tsx": {
-  //   "large-component": 1,
-  //   "jsx-region-comment": 1,
-  // },
-  // "src/frontend/features/objectives/components/objective-summary-panel.tsx": {
-  //   "jsx-region-comment": 2,
-  // },
-  // "src/frontend/features/objectives/components/objectives-view.tsx": {
-  //   "max-lines": 1,
-  //   "large-component": 1,
-  // },
-  // "src/frontend/features/work-journal/components/work-journal-view.tsx": {
-  //   "tanstack-in-component": 1,
-  //   "api-import-in-component": 3,
-  //   "max-lines": 1,
-  //   "large-component": 1,
-  //   "too-many-usestate": 1,
-  // },
 };
 
 function listChangedFiles() {

@@ -1,14 +1,13 @@
 import { AggregateRoot } from "@/backend/modules/shared";
-import type { EvalResultPrimitives } from "@/backend/modules/eval-workspace";
 import { EvalLatencyMs } from "../value-objects/eval-latency-ms.value-object";
 import { EvalParsedOutput } from "../value-objects/eval-parsed-output.value-object";
 import { EvalRawOutput } from "../value-objects/eval-raw-output.value-object";
-import { EvalUsage } from "../value-objects/eval-usage.value-object";
+import { EvalUsageNullable } from "../value-objects/eval-usage-nullable.value-object";
 
 export interface EvalPromptExecutionPrimitives {
   rawOutput: string;
   parsedOutput: unknown;
-  usage: EvalResultPrimitives["usage"];
+  usage: unknown | null;
   latencyMs: number;
 }
 
@@ -16,7 +15,7 @@ export class EvalPromptExecution extends AggregateRoot {
   private constructor(
     private readonly rawOutputValue: EvalRawOutput,
     private readonly parsedOutputValue: EvalParsedOutput,
-    private readonly usageValue: EvalUsage,
+    private readonly usageValue: EvalUsageNullable,
     private readonly latencyMsValue: EvalLatencyMs,
   ) {
     super();
@@ -28,7 +27,7 @@ export class EvalPromptExecution extends AggregateRoot {
     return new EvalPromptExecution(
       EvalRawOutput.fromPrimitives(primitives.rawOutput),
       EvalParsedOutput.fromPrimitives(primitives.parsedOutput),
-      EvalUsage.fromPrimitives(primitives.usage),
+      EvalUsageNullable.fromPrimitives(primitives.usage),
       EvalLatencyMs.fromPrimitives(primitives.latencyMs),
     );
   }

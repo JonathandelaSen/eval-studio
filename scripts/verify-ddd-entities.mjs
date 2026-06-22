@@ -40,6 +40,111 @@ const primitiveTypeKinds = new Set([
   ts.SyntaxKind.UnknownKeyword,
 ]);
 
+// Function to collect all Value Object names from the codebase
+async function collectAllValueObjectNames(rootDir) {
+  const modulesDir = path.join(rootDir, "src/backend/modules");
+  const files = await walkFiles(modulesDir);
+  const voFiles = files.filter(
+    (file) =>
+      file.includes("/domain/value-objects/") &&
+      file.endsWith(".value-object.ts") &&
+      !file.endsWith(".test.ts")
+  );
+
+  const voNames = new Set(["ValueObject", "EntityId", "StringId", "IsoDate", "OptionalIsoDate", "Timestamp", "UserId"]);
+  for (const file of voFiles) {
+    const source = await readFile(file, "utf8");
+    const sourceFile = ts.createSourceFile(file, source, ts.ScriptTarget.Latest, true);
+    for (const statement of sourceFile.statements) {
+      if (
+        ts.isClassDeclaration(statement) &&
+        statement.name &&
+        isExported(statement)
+      ) {
+        voNames.add(statement.name.text);
+      }
+    }
+  }
+  return voNames;
+}
+
+function checkTypeNodeForNullableVO(typeNode, file, sourceFile, violations, voNames, contextDescription) {
+  if (!typeNode) return;
+
+  if (ts.isUnionTypeNode(typeNode)) {
+    let hasNullish = false;
+    let voName = null;
+    let offendingNode = null;
+
+    for (const childType of typeNode.types) {
+      if (
+        childType.kind === ts.SyntaxKind.NullKeyword ||
+        childType.kind === ts.SyntaxKind.UndefinedKeyword
+      ) {
+        hasNullish = true;
+      } else if (ts.isTypeReferenceNode(childType)) {
+        const name = childType.typeName.getText(sourceFile);
+        if (voNames.has(name)) {
+          voName = name;
+          offendingNode = childType;
+        }
+      }
+    }
+
+    if (hasNullish && voName) {
+      addViolation(
+        violations,
+        file,
+        "value-object-union-nullish",
+        `Value Object ${voName} is not allowed to be combined with | undefined or | null in ${contextDescription}. Create a Nullable version of the Value Object instead (e.g. ${voName}Nullable).`,
+        sourceFile,
+        offendingNode
+      );
+    }
+  }
+
+  typeNode.forEachChild((child) =>
+    checkTypeNodeForNullableVO(child, file, sourceFile, violations, voNames, contextDescription)
+  );
+}
+
+function checkTypesForNullableVO(sourceFile, file, violations, voNames) {
+  const visit = (node) => {
+    let shouldCheck = false;
+    let contextDescription = "";
+
+    if (ts.isPropertyDeclaration(node) && node.type) {
+      shouldCheck = true;
+      contextDescription = `property "${node.name.getText(sourceFile)}"`;
+    } else if (ts.isParameter(node) && node.type) {
+      shouldCheck = true;
+      contextDescription = `parameter "${node.name.getText(sourceFile)}"`;
+    } else if (ts.isPropertySignature(node) && node.type) {
+      let insidePrimitives = false;
+      let parent = node.parent;
+      while (parent) {
+        if (ts.isInterfaceDeclaration(parent) && parent.name.text.endsWith("Primitives")) {
+          insidePrimitives = true;
+          break;
+        }
+        parent = parent.parent;
+      }
+      if (!insidePrimitives) {
+        shouldCheck = true;
+        contextDescription = `interface property "${node.name.getText(sourceFile)}"`;
+      }
+    }
+
+    if (shouldCheck) {
+      checkTypeNodeForNullableVO(node.type, file, sourceFile, violations, voNames, contextDescription);
+    }
+
+    node.forEachChild(visit);
+  };
+
+  visit(sourceFile);
+}
+
 async function walkFiles(dir) {
   let entries;
   try {
@@ -355,7 +460,7 @@ function checkValueObjectFile(sourceFile, file, violations) {
       ts.isClassDeclaration(statement) &&
       statement.name &&
       isExported(statement) &&
-      (hasHeritage(statement, "ValueObject") || hasHeritage(statement, "EntityId"))
+      (hasHeritage(statement, "ValueObject") || hasHeritage(statement, "EntityId") || hasHeritage(statement, "StringId"))
   );
 
   if (valueObjects.length === 0) {
@@ -384,7 +489,7 @@ function checkValueObjectFile(sourceFile, file, violations) {
       );
     }
 
-    if (!hasMethod(valueObject, "toPrimitives") && !hasHeritage(valueObject, "EntityId")) {
+    if (!hasMethod(valueObject, "toPrimitives") && !hasHeritage(valueObject, "EntityId") && !hasHeritage(valueObject, "StringId")) {
       addViolation(
         violations,
         file,
@@ -495,7 +600,7 @@ async function readSourceFile(rootDir, relativePath) {
   return parseSource(source, relativePath);
 }
 
-async function checkModule(moduleName, rootDir, violations) {
+async function checkModule(moduleName, rootDir, violations, voNames) {
   const moduleDir = path.join(rootDir, "src/backend/modules", moduleName);
   const files = (await walkFiles(moduleDir))
     .map((filePath) => toPosixRelative(rootDir, filePath))
@@ -510,10 +615,12 @@ async function checkModule(moduleName, rootDir, violations) {
 
     if (file.includes("/domain/entities/") && file.endsWith(".entity.ts")) {
       aggregateClassNames.push(...checkEntityFile(sourceFile, file, violations));
+      checkTypesForNullableVO(sourceFile, file, violations, voNames);
     }
 
     if (file.includes("/domain/value-objects/") && file.endsWith(".value-object.ts")) {
       checkValueObjectFile(sourceFile, file, violations);
+      checkTypesForNullableVO(sourceFile, file, violations, voNames);
     }
   }
 
@@ -570,10 +677,11 @@ async function checkAllEntitiesAreValueObjectBacked(rootDir, violations) {
 
 export async function findDddEntityViolations({ rootDir = repoRoot } = {}) {
   const violations = [];
+  const voNames = await collectAllValueObjectNames(rootDir);
 
   const modules = await listFeatureModules(rootDir);
   for (const moduleName of modules) {
-    await checkModule(moduleName, rootDir, violations);
+    await checkModule(moduleName, rootDir, violations, voNames);
   }
 
   await checkAllEntitiesAreValueObjectBacked(rootDir, violations);

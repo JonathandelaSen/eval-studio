@@ -240,8 +240,7 @@ export async function findUseCaseReturnTypesViolations({
           importPath.includes("/value-objects/") ||
           importPath.includes("/value-objects") ||
           importPath === "@/backend/modules/shared" ||
-          importPath.startsWith("@/backend/modules/shared/") ||
-          importPath.includes("cv-profile");
+          importPath.startsWith("@/backend/modules/shared/");
 
         if (!isValidImport) {
           violations.push({

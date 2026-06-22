@@ -64,6 +64,70 @@ function getExpectedPascalCaseName(fileName) {
   return toPascalCase(prefix);
 }
 
+const PRIMITIVE_TYPE_NAMES = [
+  "void",
+  "boolean",
+  "string",
+  "number",
+  "null",
+  "undefined",
+  "any",
+  "unknown",
+  "object",
+  "bigint",
+  "symbol",
+];
+
+const INPUT_LIKE_SUFFIXES = ["Input", "Criteria", "SearchCriteria", "Filters"];
+
+function isInputLikeName(name) {
+  return INPUT_LIKE_SUFFIXES.some((suffix) => name.endsWith(suffix));
+}
+
+function isDomainValueObjectImport(importPath) {
+  return (
+    importPath.includes("/entities/") ||
+    importPath.includes("/entities") ||
+    importPath.includes("/value-objects/") ||
+    importPath.includes("/value-objects") ||
+    importPath === "@/backend/modules/shared" ||
+    importPath.startsWith("@/backend/modules/shared/")
+  );
+}
+
+// Returns a violation reason string when `typeNode` is not a Value Object or
+// Entity, or null when it is acceptable as an input type.
+function validateValueObjectInputType({ typeNode, sourceFile, imports }) {
+  const baseType = getBaseTypeName(typeNode, sourceFile);
+
+  if (!baseType) {
+    return `type "${typeNode.getText(sourceFile)}" is not a Value Object or Entity`;
+  }
+
+  if (PRIMITIVE_TYPE_NAMES.includes(baseType)) {
+    return `primitive type "${baseType}" is not allowed; use a Value Object or Entity instead`;
+  }
+
+  if (baseType === "inline-object") {
+    return "inline object structures are not allowed; use a Value Object or Entity instead";
+  }
+
+  if (baseType.endsWith("Primitives")) {
+    return `primitives type "${baseType}" is not allowed; use the Value Object itself instead`;
+  }
+
+  const importPath = imports.get(baseType);
+  if (!importPath) {
+    return `type "${baseType}" is not imported; Value Objects and Entities must come from domain/value-objects or domain/entities`;
+  }
+
+  if (!isDomainValueObjectImport(importPath)) {
+    return `type "${baseType}" imported from "${importPath}" is not a Value Object or Entity`;
+  }
+
+  return null;
+}
+
 function getBaseTypeName(typeNode, sourceFile) {
   if (!typeNode) return null;
 
@@ -199,6 +263,81 @@ export async function findRepositoryReturnTypesViolations({ rootDir = repoRoot }
         }
       }
 
+      // 1b. Input/Criteria structures may only contain Value Objects or Entities
+      if (declaredName && isInputLikeName(declaredName)) {
+        let inputMembers = null;
+        if (ts.isInterfaceDeclaration(node)) {
+          inputMembers = node.members;
+        } else if (ts.isTypeAliasDeclaration(node) && ts.isTypeLiteralNode(node.type)) {
+          inputMembers = node.type.members;
+        }
+
+        if (inputMembers) {
+          inputMembers.forEach((member) => {
+            if (ts.isPropertySignature(member) && member.type) {
+              const reason = validateValueObjectInputType({
+                typeNode: member.type,
+                sourceFile,
+                imports,
+              });
+              if (reason) {
+                violations.push({
+                  file,
+                  rule: "repository-invalid-input-field-type",
+                  reason: `Input field "${declaredName}.${member.name.getText(
+                    sourceFile
+                  )}" has ${reason}. Input parameters must only contain Value Objects or Entities.`,
+                  location: location(sourceFile, member),
+                });
+              }
+            }
+          });
+        }
+      }
+
+      // 1c. Repository/service method parameters must be Value Objects, Entities,
+      //     or an Input/Criteria structure (which is itself validated above).
+      if (!isInfrastructure && ts.isInterfaceDeclaration(node)) {
+        const interfaceName = node.name.text;
+        const isRepositoryOrServiceParams =
+          interfaceName.endsWith("Repository") ||
+          interfaceName.endsWith("Service") ||
+          interfaceName.endsWith("Reader") ||
+          interfaceName.endsWith("Writer") ||
+          interfaceName.endsWith("Factory") ||
+          interfaceName === expectedPascalCaseName;
+
+        if (isRepositoryOrServiceParams) {
+          node.members.forEach((member) => {
+            if (!ts.isMethodSignature(member)) return;
+            const methodName = member.name.getText(sourceFile);
+            member.parameters.forEach((parameter) => {
+              if (!parameter.type) return;
+              const baseType = getBaseTypeName(parameter.type, sourceFile);
+              // Input/Criteria structures are valid parameter types and get
+              // their fields validated by rule 1b.
+              if (baseType && isInputLikeName(baseType)) return;
+
+              const reason = validateValueObjectInputType({
+                typeNode: parameter.type,
+                sourceFile,
+                imports,
+              });
+              if (reason) {
+                violations.push({
+                  file,
+                  rule: "repository-invalid-parameter-type",
+                  reason: `Parameter "${parameter.name.getText(
+                    sourceFile
+                  )}" of "${interfaceName}.${methodName}" has ${reason}. Repository/service method parameters must be Value Objects, Entities, or an Input/Criteria structure.`,
+                  location: location(sourceFile, parameter),
+                });
+              }
+            });
+          });
+        }
+      }
+
       // 2. Check method return types inside repository/service interfaces
       if (!isInfrastructure && ts.isInterfaceDeclaration(node)) {
         const interfaceName = node.name.text;
@@ -262,8 +401,7 @@ export async function findRepositoryReturnTypesViolations({ rootDir = repoRoot }
                   importPath.includes("/value-objects/") ||
                   importPath.includes("/value-objects") ||
                   importPath === "@/backend/modules/shared" ||
-                  importPath.startsWith("@/backend/modules/shared/") ||
-                  importPath.includes("cv-profile");
+                  importPath.startsWith("@/backend/modules/shared/");
 
                 if (!isValidImport) {
                   violations.push({

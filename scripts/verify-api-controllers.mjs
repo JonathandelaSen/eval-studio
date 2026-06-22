@@ -8,12 +8,6 @@ const requiredRouteSiblings = ["validation.ts", "responses.ts"];
 const actionDispatchPattern =
   /\b(?:if|switch)\s*\(\s*[^)]*\.(action|command|operation)\b[^)]*\)/g;
 
-// Remove entries as their action-based controllers are split into dedicated routes.
-const temporaryAllowlist = new Set([
-  "src/app/api/cvs/[id]/chat/route.ts",
-  "src/app/api/job-match-analyses/[id]/chat/route.ts",
-]);
-
 function listRouteFiles() {
   const result = spawnSync("rg", ["--files", "-g", routePattern], {
     cwd: root,
@@ -46,8 +40,6 @@ for (const file of routeFiles) {
     }
   }
 
-  if (temporaryAllowlist.has(file)) continue;
-
   const source = readFileSync(join(root, file), "utf8");
   for (const match of source.matchAll(actionDispatchPattern)) {
     violations.push(
@@ -64,6 +56,4 @@ if (violations.length > 0) {
   process.exit(1);
 }
 
-console.log(
-  `API controllers OK (${routeFiles.length} routes, ${temporaryAllowlist.size} temporary allowlist entries).`,
-);
+console.log(`API controllers OK (${routeFiles.length} routes).`);

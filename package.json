@@ -9,8 +9,8 @@
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "ddd:check": "node scripts/verify-ddd.mjs",
-    "check": "npm run typecheck && npm run lint && npm run test && npm run ddd:check",
+    "rules:check": "node scripts/verify-rules.mjs",
+    "check": "npm run typecheck && npm run lint && npm run test && npm run rules:check",
     "shadcn": "shadcn"
   },
   "dependencies": {
