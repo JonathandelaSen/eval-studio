@@ -1,5 +1,9 @@
 import { AggregateRoot } from "@/backend/modules/shared";
 import type { EvalResultPrimitives } from "@/backend/modules/eval-workspace";
+import { EvalLatencyMs } from "../value-objects/eval-latency-ms.value-object";
+import { EvalParsedOutput } from "../value-objects/eval-parsed-output.value-object";
+import { EvalRawOutput } from "../value-objects/eval-raw-output.value-object";
+import { EvalUsage } from "../value-objects/eval-usage.value-object";
 
 export interface EvalPromptExecutionPrimitives {
   rawOutput: string;
@@ -10,34 +14,31 @@ export interface EvalPromptExecutionPrimitives {
 
 export class EvalPromptExecution extends AggregateRoot {
   private constructor(
-    private readonly rawOutputValue: string,
-    private readonly parsedOutputValue: unknown,
-    private readonly usageValue: EvalResultPrimitives["usage"],
-    private readonly latencyMsValue: number,
+    private readonly rawOutputValue: EvalRawOutput,
+    private readonly parsedOutputValue: EvalParsedOutput,
+    private readonly usageValue: EvalUsage,
+    private readonly latencyMsValue: EvalLatencyMs,
   ) {
     super();
-    if (latencyMsValue < 0) {
-      throw new Error("Latency cannot be negative.");
-    }
   }
 
   static fromPrimitives(
     primitives: EvalPromptExecutionPrimitives,
   ): EvalPromptExecution {
     return new EvalPromptExecution(
-      primitives.rawOutput,
-      primitives.parsedOutput,
-      primitives.usage,
-      primitives.latencyMs,
+      EvalRawOutput.fromPrimitives(primitives.rawOutput),
+      EvalParsedOutput.fromPrimitives(primitives.parsedOutput),
+      EvalUsage.fromPrimitives(primitives.usage),
+      EvalLatencyMs.fromPrimitives(primitives.latencyMs),
     );
   }
 
   toPrimitives(): EvalPromptExecutionPrimitives {
     return {
-      rawOutput: this.rawOutputValue,
-      parsedOutput: this.parsedOutputValue,
-      usage: this.usageValue,
-      latencyMs: this.latencyMsValue,
+      rawOutput: this.rawOutputValue.toPrimitives(),
+      parsedOutput: this.parsedOutputValue.toPrimitives(),
+      usage: this.usageValue.toPrimitives(),
+      latencyMs: this.latencyMsValue.toPrimitives(),
     };
   }
 }
