@@ -1,0 +1,23 @@
+# dependencies
+node_modules/
+
+# Next.js
+.next/
+out/
+
+# production
+dist/
+build/
+coverage/
+
+# local env
+.env*.local
+
+# TypeScript
+*.tsbuildinfo
+
+# local tooling
+.playwright-cli/
+
+# OS/editor
+.DS_Store

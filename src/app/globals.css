@@ -1,0 +1,100 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:is(.dark *));
+
+:root {
+  color-scheme: light dark;
+  --background: 0 0% 99%;
+  --foreground: 240 10% 7%;
+  --card: 0 0% 100%;
+  --card-foreground: 240 10% 7%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 240 10% 7%;
+  --primary: 167 63% 29%;
+  --primary-foreground: 0 0% 98%;
+  --secondary: 240 5% 94%;
+  --secondary-foreground: 240 6% 12%;
+  --muted: 240 5% 94%;
+  --muted-foreground: 240 4% 42%;
+  --accent: 43 74% 54%;
+  --accent-foreground: 35 25% 10%;
+  --destructive: 0 72% 48%;
+  --destructive-foreground: 0 0% 98%;
+  --border: 240 6% 86%;
+  --input: 240 6% 86%;
+  --ring: 167 63% 29%;
+  --radius: 0.5rem;
+}
+
+.dark {
+  color-scheme: dark;
+  --background: 220 13% 8%;
+  --foreground: 210 20% 96%;
+  --card: 220 13% 10%;
+  --card-foreground: 210 20% 96%;
+  --popover: 220 13% 10%;
+  --popover-foreground: 210 20% 96%;
+  --primary: 166 53% 58%;
+  --primary-foreground: 174 70% 8%;
+  --secondary: 220 10% 16%;
+  --secondary-foreground: 210 20% 96%;
+  --muted: 220 10% 16%;
+  --muted-foreground: 220 9% 68%;
+  --accent: 42 88% 62%;
+  --accent-foreground: 35 28% 10%;
+  --destructive: 0 72% 58%;
+  --destructive-foreground: 0 0% 98%;
+  --border: 220 10% 22%;
+  --input: 220 10% 22%;
+  --ring: 166 53% 58%;
+}
+
+@theme inline {
+  --color-background: hsl(var(--background));
+  --color-foreground: hsl(var(--foreground));
+  --color-card: hsl(var(--card));
+  --color-card-foreground: hsl(var(--card-foreground));
+  --color-popover: hsl(var(--popover));
+  --color-popover-foreground: hsl(var(--popover-foreground));
+  --color-primary: hsl(var(--primary));
+  --color-primary-foreground: hsl(var(--primary-foreground));
+  --color-secondary: hsl(var(--secondary));
+  --color-secondary-foreground: hsl(var(--secondary-foreground));
+  --color-muted: hsl(var(--muted));
+  --color-muted-foreground: hsl(var(--muted-foreground));
+  --color-accent: hsl(var(--accent));
+  --color-accent-foreground: hsl(var(--accent-foreground));
+  --color-destructive: hsl(var(--destructive));
+  --color-destructive-foreground: hsl(var(--destructive-foreground));
+  --color-border: hsl(var(--border));
+  --color-input: hsl(var(--input));
+  --color-ring: hsl(var(--ring));
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+}
+
+* {
+  border-color: hsl(var(--border));
+}
+
+html {
+  accent-color: hsl(var(--primary));
+}
+
+body {
+  min-height: 100svh;
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
+  font-feature-settings: "ss01", "cv01";
+}
+
+:where(a, button, input, select, textarea, [tabindex]):focus-visible {
+  outline: 2px solid hsl(var(--ring));
+  outline-offset: 2px;
+}
+
+code,
+pre {
+  color-scheme: dark;
+}
