@@ -33,6 +33,7 @@ describe("EvalRun", () => {
       runtime: EvalRuntimeNullable.fromPrimitives({
         provider: "openai",
         model: "gpt-5 mini",
+        temperature: null,
       }),
       notes: RunNotesNullable.empty(),
       suiteId: SuiteIdNullable.empty(),
@@ -49,6 +50,34 @@ describe("EvalRun", () => {
       },
     });
     expect(evalRun.id.toPrimitives()).toContain(".eval-studio-openai-gpt-5-mini");
+  });
+
+  it("records a run-created event on creation", () => {
+    const createdAt = Timestamp.fromPrimitives("2026-06-22T10:15:30.000Z");
+    const producer = Producer.evalStudio();
+    const caseUuid = "550e8400-e29b-41d4-a716-446655440000";
+    const evalRun = EvalRun.create({
+      id: EvalRunId.create({
+        createdAt,
+        producer,
+        provider: EvalProvider.openai(),
+        model: EvalModel.fromPrimitives("gpt-5 mini"),
+      }),
+      name: RunName.fromPrimitives("Run 1"),
+      actionId: ActionId.fromPrimitives("987f6543-e21b-32d1-b654-246614174111"),
+      producer,
+      createdAt,
+      caseIds: CaseIds.fromPrimitives([caseUuid]),
+      runtime: EvalRuntimeNullable.empty(),
+      notes: RunNotesNullable.empty(),
+      suiteId: SuiteIdNullable.empty(),
+    });
+
+    const events = evalRun.pullDomainEvents();
+
+    expect(events).toHaveLength(1);
+    expect(events[0].eventName).toBe("eval_execution.run_created.1");
+    expect(events[0].toPrimitives()).toEqual(evalRun.toPrimitives());
   });
 
   it("hydrates identities and round-trips primitives", () => {

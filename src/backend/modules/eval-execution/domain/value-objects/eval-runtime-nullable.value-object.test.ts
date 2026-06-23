@@ -42,6 +42,7 @@ describe("EvalRuntimeNullable", () => {
     const primitives = {
       provider: "ollama",
       model: "llama3",
+      temperature: null,
     };
     const nullable = EvalRuntimeNullable.fromPrimitives(primitives);
 
@@ -50,18 +51,11 @@ describe("EvalRuntimeNullable", () => {
     expect(nullable.toPrimitives()).toEqual({
       provider: "ollama",
       model: "llama3",
-      temperature: undefined,
+      temperature: null,
     });
   });
 
   it("supports equality comparison", () => {
-    const runtimeA = EvalRuntime.fromPrimitives({ provider: "openai", model: "gpt-4" });
-    const runtimeB = EvalRuntime.fromPrimitives({ provider: "openai", model: "gpt-4" });
-    const runtimeC = EvalRuntime.fromPrimitives({ provider: "openai", model: "gpt-3.5" });
-
-    const nullableA = EvalRuntimeNullable.fromValue(runtimeA);
-    const nullableB = EvalRuntimeNullable.fromValue(runtimeB);
-    const nullableC = EvalRuntimeNullable.fromValue(runtimeC);
     const nullableNull1 = EvalRuntimeNullable.empty();
     const nullableNull2 = EvalRuntimeNullable.fromPrimitives(null);
 

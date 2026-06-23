@@ -10,7 +10,7 @@ import { Producer } from "../../domain/value-objects/producer.value-object";
 import { ResultId } from "../../domain/value-objects/result-id.value-object";
 import { EvalRunId } from "../../domain/value-objects/eval-run-id.value-object";
 import { RunName } from "../../domain/value-objects/run-name.value-object";
-import { EvalTemperature } from "../../domain/value-objects/eval-temperature.value-object";
+import { EvalTemperatureNullable } from "../../domain/value-objects/eval-temperature-nullable.value-object";
 import { EvalRuntime } from "../../domain/value-objects/eval-runtime.value-object";
 import { EvalRuntimeNullable } from "../../domain/value-objects/eval-runtime-nullable.value-object";
 import { RunNotesNullable } from "../../domain/value-objects/run-notes-nullable.value-object";
@@ -69,9 +69,7 @@ export class CreateRunUseCase {
     const cases = input.cases.filter((testCase) => selectedCaseIds.has(testCase.caseId));
     const provider = EvalProvider.fromPrimitives(input.provider);
     const model = EvalModel.fromPrimitives(input.model);
-    const temperature = input.temperature !== undefined && input.temperature !== null
-      ? EvalTemperature.fromPrimitives(input.temperature)
-      : undefined;
+    const temperature = EvalTemperatureNullable.fromPrimitives(input.temperature);
     const runtime = EvalRuntimeNullable.fromValue(
       EvalRuntime.create({ provider, model, temperature }),
     );
@@ -125,7 +123,7 @@ export class CreateRunUseCase {
           provider,
           model,
           renderedPrompt,
-          temperature,
+          temperature: temperature.valueValue ?? undefined,
         })
       ).toPrimitives();
       return EvalResult.createSuccess({
@@ -154,6 +152,6 @@ type RunContext = {
   cases: EvalCase[];
   provider: EvalProvider;
   model: EvalModel;
-  temperature: EvalTemperature | undefined;
+  temperature: EvalTemperatureNullable;
   runtime: ReturnType<typeof EvalRuntimeNullable.fromValue>;
 };
