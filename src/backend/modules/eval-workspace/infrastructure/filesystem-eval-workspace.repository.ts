@@ -27,7 +27,7 @@ export class FilesystemEvalWorkspaceRepository
 {
   constructor(private readonly workspaceRoot: string | undefined) {}
 
-  async scan(): Promise<EvalWorkspace> {
+  async get(): Promise<EvalWorkspace> {
     const snapshot: EvalWorkspacePrimitives = {
       workspaceRoot: this.workspaceRoot ?? null,
       manifest: null,

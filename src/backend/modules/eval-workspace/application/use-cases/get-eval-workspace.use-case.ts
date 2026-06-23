@@ -5,6 +5,6 @@ export class GetEvalWorkspaceUseCase {
   constructor(private readonly repo: EvalWorkspaceRepository) {}
 
   execute(): Promise<EvalWorkspace> {
-    return this.repo.scan();
+    return this.repo.get();
   }
 }

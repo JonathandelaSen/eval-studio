@@ -8,7 +8,7 @@ describe("SaveAnnotationUseCase", () => {
   it("validates and saves an annotation", async () => {
     let saved: EvalAnnotation | undefined;
     const repo: EvalWorkspaceRepository = {
-      scan: async () => EvalWorkspace.fromPrimitives({
+      get: async () => EvalWorkspace.fromPrimitives({
         workspaceRoot: null,
         manifest: null,
         suites: [],
@@ -40,7 +40,7 @@ describe("SaveAnnotationUseCase", () => {
 
   it("rejects annotations without a valid score", async () => {
     const repo: EvalWorkspaceRepository = {
-      scan: async () => EvalWorkspace.fromPrimitives({
+      get: async () => EvalWorkspace.fromPrimitives({
         workspaceRoot: null,
         manifest: null,
         suites: [],

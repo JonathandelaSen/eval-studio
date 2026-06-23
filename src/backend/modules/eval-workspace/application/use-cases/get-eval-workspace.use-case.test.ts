@@ -6,7 +6,7 @@ import { EvalWorkspace } from "../../domain/entities/eval-workspace.entity";
 describe("GetEvalWorkspaceUseCase", () => {
   it("returns the repository snapshot", async () => {
     const repo: EvalWorkspaceRepository = {
-      scan: async () => EvalWorkspace.fromPrimitives({
+      get: async () => EvalWorkspace.fromPrimitives({
         workspaceRoot: "/tmp/evals",
         manifest: null,
         suites: [],
