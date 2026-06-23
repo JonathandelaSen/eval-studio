@@ -1,10 +1,10 @@
-import { EvalWorkspaceSnapshot } from "../../domain/entities/eval-workspace-snapshot.entity";
+import { EvalWorkspace } from "../../domain/entities/eval-workspace.entity";
 import type { EvalWorkspaceRepository } from "../../domain/repositories/eval-workspace.repository";
 
-export class GetEvalWorkspaceSnapshotUseCase {
+export class GetEvalWorkspaceUseCase {
   constructor(private readonly repo: EvalWorkspaceRepository) {}
 
-  execute(): Promise<EvalWorkspaceSnapshot> {
+  execute(): Promise<EvalWorkspace> {
     return this.repo.scan();
   }
 }

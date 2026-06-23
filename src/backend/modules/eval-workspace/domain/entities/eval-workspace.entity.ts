@@ -51,7 +51,7 @@ export type WorkspaceDiagnostic = {
   message: string;
 };
 
-export interface EvalWorkspaceSnapshotPrimitives {
+export interface EvalWorkspacePrimitives {
   workspaceRoot: string | null;
   manifest: EvalManifestPrimitives | null;
   suites: EvalSuitePrimitives[];
@@ -62,16 +62,16 @@ export interface EvalWorkspaceSnapshotPrimitives {
   diagnostics: WorkspaceDiagnostic[];
 }
 
-export class EvalWorkspaceSnapshot extends AggregateRoot {
-  private constructor(private readonly primitives: EvalWorkspaceSnapshotPrimitives) {
+export class EvalWorkspace extends AggregateRoot {
+  private constructor(private readonly primitives: EvalWorkspacePrimitives) {
     super();
   }
 
-  static fromPrimitives(primitives: EvalWorkspaceSnapshotPrimitives): EvalWorkspaceSnapshot {
-    return new EvalWorkspaceSnapshot(primitives);
+  static fromPrimitives(primitives: EvalWorkspacePrimitives): EvalWorkspace {
+    return new EvalWorkspace(primitives);
   }
 
-  toPrimitives(): EvalWorkspaceSnapshotPrimitives {
+  toPrimitives(): EvalWorkspacePrimitives {
     return this.primitives;
   }
 }

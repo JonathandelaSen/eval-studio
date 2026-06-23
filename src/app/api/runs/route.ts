@@ -7,7 +7,7 @@ export const runtime = "nodejs";
 export async function POST(request: Request) {
   try {
     const body = createRunRequestSchema.parse(await request.json());
-    const snapshot = await evalWorkspaceModule.getEvalWorkspaceSnapshot.execute();
+    const snapshot = await evalWorkspaceModule.getEvalWorkspace.execute();
     const run = await evalExecutionModule.createRun.execute({
       ...body,
       cases: snapshot.toPrimitives().cases,

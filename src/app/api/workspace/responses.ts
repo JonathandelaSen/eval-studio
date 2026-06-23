@@ -1,3 +1,3 @@
-import type { EvalWorkspaceSnapshotPrimitives } from "@/backend/modules/eval-workspace";
+import type { EvalWorkspacePrimitives } from "@/backend/modules/eval-workspace";
 
-export type EvalWorkspaceResponse = EvalWorkspaceSnapshotPrimitives;
+export type EvalWorkspaceResponse = EvalWorkspacePrimitives;

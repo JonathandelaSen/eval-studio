@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { EvalWorkspaceSnapshot } from "./eval-workspace-snapshot.entity";
+import { EvalWorkspace } from "./eval-workspace.entity";
 
-describe("EvalWorkspaceSnapshot", () => {
+describe("EvalWorkspace", () => {
   it("round-trips workspace scan primitives", () => {
-    const snapshot = EvalWorkspaceSnapshot.fromPrimitives({
+    const snapshot = EvalWorkspace.fromPrimitives({
       workspaceRoot: "/tmp/evals",
       manifest: null,
       suites: [],

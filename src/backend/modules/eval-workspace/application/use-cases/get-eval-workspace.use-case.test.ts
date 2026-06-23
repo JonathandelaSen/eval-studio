@@ -1,12 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { GetEvalWorkspaceSnapshotUseCase } from "./get-eval-workspace-snapshot.use-case";
+import { GetEvalWorkspaceUseCase } from "./get-eval-workspace.use-case";
 import type { EvalWorkspaceRepository } from "../../domain/repositories/eval-workspace.repository";
-import { EvalWorkspaceSnapshot } from "../../domain/entities/eval-workspace-snapshot.entity";
+import { EvalWorkspace } from "../../domain/entities/eval-workspace.entity";
 
-describe("GetEvalWorkspaceSnapshotUseCase", () => {
+describe("GetEvalWorkspaceUseCase", () => {
   it("returns the repository snapshot", async () => {
     const repo: EvalWorkspaceRepository = {
-      scan: async () => EvalWorkspaceSnapshot.fromPrimitives({
+      scan: async () => EvalWorkspace.fromPrimitives({
         workspaceRoot: "/tmp/evals",
         manifest: null,
         suites: [],
@@ -19,7 +19,7 @@ describe("GetEvalWorkspaceSnapshotUseCase", () => {
       saveAnnotation: async (annotation) => annotation,
     };
 
-    const result = await new GetEvalWorkspaceSnapshotUseCase(repo).execute();
+    const result = await new GetEvalWorkspaceUseCase(repo).execute();
 
     expect(result.toPrimitives().workspaceRoot).toBe("/tmp/evals");
   });

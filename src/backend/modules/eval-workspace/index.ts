@@ -1,6 +1,6 @@
 export { createEvalWorkspaceModule } from "./eval-workspace.module";
 export { EvalAnnotation } from "./domain/entities/eval-annotation.entity";
-export { EvalWorkspaceSnapshot } from "./domain/entities/eval-workspace-snapshot.entity";
+export { EvalWorkspace } from "./domain/entities/eval-workspace.entity";
 export type {
   EvalAnnotationPrimitives,
 } from "./domain/entities/eval-annotation.entity";
@@ -8,5 +8,5 @@ export type {
   EvalCasePrimitives as EvalCase,
   EvalManifestPrimitives as EvalManifest,
   EvalSuitePrimitives as EvalSuite,
-  EvalWorkspaceSnapshotPrimitives,
-} from "./domain/entities/eval-workspace-snapshot.entity";
+  EvalWorkspacePrimitives,
+} from "./domain/entities/eval-workspace.entity";

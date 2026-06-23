@@ -11,13 +11,13 @@ import {
   type EvalAnnotationPrimitives,
 } from "../domain/entities/eval-annotation.entity";
 import {
-  EvalWorkspaceSnapshot,
+  EvalWorkspace,
   type EvalCasePrimitives,
   type EvalManifestPrimitives,
   type EvalSuitePrimitives,
-  type EvalWorkspaceSnapshotPrimitives,
+  type EvalWorkspacePrimitives,
   type WorkspaceDiagnostic,
-} from "../domain/entities/eval-workspace-snapshot.entity";
+} from "../domain/entities/eval-workspace.entity";
 import type { EvalWorkspaceRepository } from "../domain/repositories/eval-workspace.repository";
 
 type ArtifactKind = "suite" | "case" | "run" | "result" | "annotation";
@@ -27,8 +27,8 @@ export class FilesystemEvalWorkspaceRepository
 {
   constructor(private readonly workspaceRoot: string | undefined) {}
 
-  async scan(): Promise<EvalWorkspaceSnapshot> {
-    const snapshot: EvalWorkspaceSnapshotPrimitives = {
+  async scan(): Promise<EvalWorkspace> {
+    const snapshot: EvalWorkspacePrimitives = {
       workspaceRoot: this.workspaceRoot ?? null,
       manifest: null,
       suites: [],
@@ -44,7 +44,7 @@ export class FilesystemEvalWorkspaceRepository
         path: ".env.local",
         message: "EVAL_STUDIO_WORKSPACE is missing.",
       });
-      return EvalWorkspaceSnapshot.fromPrimitives(snapshot);
+      return EvalWorkspace.fromPrimitives(snapshot);
     }
 
     try {
@@ -54,14 +54,14 @@ export class FilesystemEvalWorkspaceRepository
           path: this.workspaceRoot,
           message: "EVAL_STUDIO_WORKSPACE is not a directory.",
         });
-        return EvalWorkspaceSnapshot.fromPrimitives(snapshot);
+        return EvalWorkspace.fromPrimitives(snapshot);
       }
     } catch {
       snapshot.diagnostics.push({
         path: this.workspaceRoot,
         message: "EVAL_STUDIO_WORKSPACE is unreadable.",
       });
-      return EvalWorkspaceSnapshot.fromPrimitives(snapshot);
+      return EvalWorkspace.fromPrimitives(snapshot);
     }
 
     snapshot.manifest = await this.readManifest(snapshot.diagnostics);
@@ -73,7 +73,7 @@ export class FilesystemEvalWorkspaceRepository
       this.collect("annotation", "annotations", snapshot),
     ]);
 
-    return EvalWorkspaceSnapshot.fromPrimitives(snapshot);
+    return EvalWorkspace.fromPrimitives(snapshot);
   }
 
   async saveAnnotation(annotation: EvalAnnotation): Promise<EvalAnnotation> {
@@ -112,7 +112,7 @@ export class FilesystemEvalWorkspaceRepository
   private async collect(
     kind: ArtifactKind,
     directoryName: "suites" | "runs" | "annotations",
-    snapshot: EvalWorkspaceSnapshotPrimitives,
+    snapshot: EvalWorkspacePrimitives,
   ) {
     const root = this.requiredRoot();
     const directory = this.safeJoin(root, directoryName);

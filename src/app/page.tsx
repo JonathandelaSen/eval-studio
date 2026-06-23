@@ -9,7 +9,7 @@ export const dynamic = "force-dynamic";
 
 export default async function Home() {
   const snapshot = (
-    await evalWorkspaceModule.getEvalWorkspaceSnapshot.execute()
+    await evalWorkspaceModule.getEvalWorkspace.execute()
   ).toPrimitives();
 
   return (

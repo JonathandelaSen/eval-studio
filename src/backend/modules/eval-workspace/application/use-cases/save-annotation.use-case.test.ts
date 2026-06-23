@@ -2,13 +2,13 @@ import { describe, expect, it } from "vitest";
 import { SaveAnnotationUseCase } from "./save-annotation.use-case";
 import { EvalAnnotation } from "../../domain/entities/eval-annotation.entity";
 import type { EvalWorkspaceRepository } from "../../domain/repositories/eval-workspace.repository";
-import { EvalWorkspaceSnapshot } from "../../domain/entities/eval-workspace-snapshot.entity";
+import { EvalWorkspace } from "../../domain/entities/eval-workspace.entity";
 
 describe("SaveAnnotationUseCase", () => {
   it("validates and saves an annotation", async () => {
     let saved: EvalAnnotation | undefined;
     const repo: EvalWorkspaceRepository = {
-      scan: async () => EvalWorkspaceSnapshot.fromPrimitives({
+      scan: async () => EvalWorkspace.fromPrimitives({
         workspaceRoot: null,
         manifest: null,
         suites: [],
@@ -40,7 +40,7 @@ describe("SaveAnnotationUseCase", () => {
 
   it("rejects annotations without a valid score", async () => {
     const repo: EvalWorkspaceRepository = {
-      scan: async () => EvalWorkspaceSnapshot.fromPrimitives({
+      scan: async () => EvalWorkspace.fromPrimitives({
         workspaceRoot: null,
         manifest: null,
         suites: [],
