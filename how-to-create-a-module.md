@@ -5,9 +5,9 @@ the language, domain model, use cases, repository ports, and infrastructure
 needed to provide that capability.
 
 Modules live under `src/backend/modules/<module-name>/`. Name them after the
-capability they provide, not after a technical mechanism or necessarily after
-one entity. For example, `eval-execution` describes the capability of executing
-evaluations; it is not called `eval-run` after one of its aggregates.
+domain objects (nouns representing domain concepts) they represent, not after
+actions, verbs, or capability management. For example, use `project` instead of
+`project-management`.
 
 ---
 
@@ -51,7 +51,7 @@ module when no existing bounded context clearly owns the capability.
 `Project` is not merely UI settings when Eval Studio can add, select, list, and
 remove projects and persist their directories. It has identity and lifecycle,
 and rules such as directory uniqueness and active-project fallback. It therefore
-belongs in a domain module, for example `project-management`, with use cases and
+belongs in a domain module, for example `project`, with use cases and
 a repository port.
 
 It must not be implemented as a stateful registry under `src/lib` or directly
@@ -86,8 +86,8 @@ Write down:
 * The data or systems it owns through repository ports.
 * What explicitly belongs to another module.
 
-Prefer a capability-oriented name such as `project-management` over a vague
-technical name such as `settings-store`. Do not create one module per table,
+Prefer a domain-oriented name (domain object/noun) such as `project` over a vague
+technical name such as `settings-store` or action-oriented names like `project-management`. Do not create one module per table,
 endpoint, entity, or screen.
 
 ---
@@ -97,7 +97,7 @@ endpoint, entity, or screen.
 Use this structure, adding only folders the capability needs:
 
 ```text
-src/backend/modules/project-management/
+src/backend/modules/project/
   domain/
     entities/
       project.entity.ts
@@ -125,7 +125,7 @@ src/backend/modules/project-management/
     repositories/
       filesystem-project.repository.ts
       filesystem-project.repository.test.ts
-  project-management.module.ts
+  project.module.ts
   index.ts
 ```
 
@@ -208,7 +208,7 @@ import { AddProjectUseCase } from "./application/use-cases/add-project.use-case"
 import { ListProjectsUseCase } from "./application/use-cases/list-projects.use-case";
 import { FilesystemProjectRepository } from "./infrastructure/repositories/filesystem-project.repository";
 
-export function createProjectManagementModule(config: {
+export function createProjectModule(config: {
   settingsFile: string;
 }) {
   const projectRepository = new FilesystemProjectRepository(config.settingsFile);
@@ -232,7 +232,7 @@ Add an `index.ts` barrel that exposes only what other modules or entry points
 are allowed to use:
 
 ```typescript
-export { createProjectManagementModule } from "./project-management.module";
+export { createProjectModule } from "./project.module";
 export { Project } from "./domain/entities/project.entity";
 export type { ProjectPrimitives } from "./domain/entities/project.entity";
 ```

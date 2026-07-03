@@ -10,6 +10,8 @@ Welcome to the architectural guides for Eval Studio.
 * [How to Create a Value Object](how-to-create-a-value-object.md)
 * [How to Create an Entity](how-to-create-an-entity.md)
 * [How to Create a Use Case](how-to-create-a-use-case.md)
+* [How to Create a Domain Error](how-to-create-a-domain-error.md)
+
 
 ## Testing
 

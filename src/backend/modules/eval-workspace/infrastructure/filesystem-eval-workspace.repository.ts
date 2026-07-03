@@ -6,6 +6,7 @@ import {
   type EvalResultPrimitives,
   type EvalRunPrimitives,
 } from "@/backend/modules/eval-execution";
+import { WorkspaceRoot } from "../domain/value-objects/workspace-root.value-object";
 import {
   EvalAnnotation,
   type EvalAnnotationPrimitives,
@@ -25,11 +26,12 @@ type ArtifactKind = "suite" | "case" | "run" | "result" | "annotation";
 export class FilesystemEvalWorkspaceRepository
   implements EvalWorkspaceRepository
 {
-  constructor(private readonly workspaceRoot: string | undefined) {}
+  constructor() {}
 
-  async get(): Promise<EvalWorkspace> {
+  async get(workspaceRoot?: WorkspaceRoot): Promise<EvalWorkspace> {
+    const rootPath = workspaceRoot?.toPrimitives();
     const snapshot: EvalWorkspacePrimitives = {
-      workspaceRoot: this.workspaceRoot ?? null,
+      workspaceRoot: rootPath ?? null,
       manifest: null,
       suites: [],
       cases: [],
@@ -39,67 +41,55 @@ export class FilesystemEvalWorkspaceRepository
       diagnostics: [],
     };
 
-    if (!this.workspaceRoot) {
+    if (!rootPath) {
       snapshot.diagnostics.push({
-        path: ".env.local",
-        message: "EVAL_STUDIO_WORKSPACE is missing.",
+        path: "Settings",
+        message: "No project is selected.",
       });
       return EvalWorkspace.fromPrimitives(snapshot);
     }
 
     try {
-      const stat = await fs.stat(this.workspaceRoot);
+      const stat = await fs.stat(rootPath);
       if (!stat.isDirectory()) {
         snapshot.diagnostics.push({
-          path: this.workspaceRoot,
-          message: "EVAL_STUDIO_WORKSPACE is not a directory.",
+          path: rootPath,
+          message: "The selected project is not a directory.",
         });
         return EvalWorkspace.fromPrimitives(snapshot);
       }
     } catch {
       snapshot.diagnostics.push({
-        path: this.workspaceRoot,
-        message: "EVAL_STUDIO_WORKSPACE is unreadable.",
+        path: rootPath,
+        message: "The selected project is unreadable.",
       });
       return EvalWorkspace.fromPrimitives(snapshot);
     }
 
-    snapshot.manifest = await this.readManifest(snapshot.diagnostics);
+    snapshot.manifest = await this.readManifest(rootPath, snapshot.diagnostics);
     await Promise.all([
-      this.collect("suite", "suites", snapshot),
-      this.collect("case", "suites", snapshot),
-      this.collect("run", "runs", snapshot),
-      this.collect("result", "runs", snapshot),
-      this.collect("annotation", "annotations", snapshot),
+      this.collect(rootPath, "suite", "suites", snapshot),
+      this.collect(rootPath, "case", "suites", snapshot),
+      this.collect(rootPath, "run", "runs", snapshot),
+      this.collect(rootPath, "result", "runs", snapshot),
+      this.collect(rootPath, "annotation", "annotations", snapshot),
     ]);
 
     return EvalWorkspace.fromPrimitives(snapshot);
   }
 
-  async saveAnnotation(annotation: EvalAnnotation): Promise<EvalAnnotation> {
-    const root = this.requiredRoot();
-    const primitives = annotation.toPrimitives();
-    const runId = primitives.runId;
-    const caseId = primitives.caseId;
-    const annotationDirectory = this.safeJoin(root, "annotations", runId);
-    const file = this.safeJoin(
-      annotationDirectory,
-      `${this.fileSafe(caseId)}.annotation.json`,
-    );
-    await fs.mkdir(annotationDirectory, { recursive: true });
-    await this.atomicWriteJson(file, primitives);
-    return annotation;
-  }
-
-  private async readManifest(diagnostics: WorkspaceDiagnostic[]) {
-    const root = this.requiredRoot();
+  private async readManifest(
+    workspaceRoot: string,
+    diagnostics: WorkspaceDiagnostic[],
+  ) {
+    const root = this.requiredRoot(workspaceRoot);
     const file = this.safeJoin(root, "manifest.json");
     try {
       const raw = await fs.readFile(file, "utf8");
       return this.parseManifest(JSON.parse(raw));
     } catch (error) {
       diagnostics.push({
-        path: this.relative(file),
+        path: this.relative(workspaceRoot, file),
         message:
           error instanceof Error
             ? `Invalid or missing manifest: ${error.message}`
@@ -110,11 +100,12 @@ export class FilesystemEvalWorkspaceRepository
   }
 
   private async collect(
+    workspaceRoot: string,
     kind: ArtifactKind,
     directoryName: "suites" | "runs" | "annotations",
     snapshot: EvalWorkspacePrimitives,
   ) {
-    const root = this.requiredRoot();
+    const root = this.requiredRoot(workspaceRoot);
     const directory = this.safeJoin(root, directoryName);
     const files = await this.findJsonFiles(directory).catch(() => []);
 
@@ -132,7 +123,7 @@ export class FilesystemEvalWorkspaceRepository
         }
       } catch (error) {
         snapshot.diagnostics.push({
-          path: this.relative(file),
+          path: this.relative(workspaceRoot, file),
           message:
             error instanceof Error
               ? `Invalid ${kind}: ${error.message}`
@@ -222,23 +213,23 @@ export class FilesystemEvalWorkspaceRepository
     await fs.rename(temp, file);
   }
 
-  private requiredRoot() {
-    if (!this.workspaceRoot) {
-      throw new Error("EVAL_STUDIO_WORKSPACE is missing.");
+  private requiredRoot(workspaceRoot: string | undefined) {
+    if (!workspaceRoot) {
+      throw new Error("No project is selected.");
     }
-    return path.resolve(this.workspaceRoot);
+    return path.resolve(workspaceRoot);
   }
 
   private safeJoin(root: string, ...segments: string[]) {
     const target = path.resolve(root, ...segments);
     if (target !== root && !target.startsWith(`${root}${path.sep}`)) {
-      throw new Error("Path escapes EVAL_STUDIO_WORKSPACE.");
+      throw new Error("Path escapes the selected project.");
     }
     return target;
   }
 
-  private relative(file: string) {
-    return this.workspaceRoot ? path.relative(this.workspaceRoot, file) : file;
+  private relative(workspaceRoot: string | undefined, file: string) {
+    return workspaceRoot ? path.relative(workspaceRoot, file) : file;
   }
 
   private fileSafe(value: string) {

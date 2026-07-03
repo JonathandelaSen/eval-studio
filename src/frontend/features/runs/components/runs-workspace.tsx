@@ -90,7 +90,7 @@ export function RunsWorkspace({ snapshot }: { snapshot: EvalWorkspaceResponse })
             <CardHeader>
               <CardTitle>No runs found</CardTitle>
               <CardDescription>
-                Add a workspace with run artifacts or create a mock run from a suite.
+                Add a project in Settings or create a mock run from a suite.
               </CardDescription>
             </CardHeader>
           </Card>
@@ -173,7 +173,7 @@ function WorkspaceSummary({ snapshot }: { snapshot: EvalWorkspaceResponse }) {
       <CardHeader>
         <CardTitle>Workspace</CardTitle>
         <CardDescription className="break-all">
-          {snapshot.workspaceRoot ?? "EVAL_STUDIO_WORKSPACE is not configured"}
+          {snapshot.workspaceRoot ?? "No project selected"}
         </CardDescription>
       </CardHeader>
       <CardContent className="grid grid-cols-3 gap-2 text-sm">

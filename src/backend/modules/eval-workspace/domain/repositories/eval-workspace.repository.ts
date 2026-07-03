@@ -1,7 +1,6 @@
-import { EvalAnnotation } from "../entities/eval-annotation.entity";
+import { WorkspaceRoot } from "../value-objects/workspace-root.value-object";
 import { EvalWorkspace } from "../entities/eval-workspace.entity";
 
 export interface EvalWorkspaceRepository {
-  get(): Promise<EvalWorkspace>;
-  saveAnnotation(annotation: EvalAnnotation): Promise<EvalAnnotation>;
+  get(workspaceRoot?: WorkspaceRoot): Promise<EvalWorkspace>;
 }

@@ -115,7 +115,7 @@ is defined. It contains response types and pure builders that translate domain
 primitives into those types.
 
 ```typescript
-import type { ProjectPrimitives } from "@/backend/modules/project-management";
+import type { ProjectPrimitives } from "@/backend/modules/project";
 
 export interface ProjectResponse {
   id: string;
@@ -166,7 +166,7 @@ Type-only imports from a module barrel are allowed because they disappear at
 compile time:
 
 ```typescript
-import type { ProjectPrimitives } from "@/backend/modules/project-management";
+import type { ProjectPrimitives } from "@/backend/modules/project";
 ```
 
 A nested route may re-export a parent response builder or alias its type instead
@@ -174,22 +174,21 @@ of duplicating the contract.
 
 ---
 
-## 5. Standardized HTTP Responses (Required, Not Implemented Yet)
+## 5. Standardized HTTP Responses
 
-Eval Studio needs one shared HTTP response layer for successful and failed
-responses. **These helpers do not exist yet. This guide defines the required
-contract but does not create them.**
+Eval Studio uses one shared HTTP response layer for successful and failed
+responses.
 
-The future implementation should live in the HTTP layer, for example:
+The implementation lives in the HTTP layer:
 
 ```text
 src/app/api/_shared/api-responses.ts
 src/app/api/_shared/api-error-handler.ts
 ```
 
-It should provide, at minimum:
+It provides:
 
-| Planned helper          |   Status | Responsibility                                              |
+| Helper                  |   Status | Responsibility                                              |
 | ----------------------- | -------: | ----------------------------------------------------------- |
 | `ok(data)`              |      200 | Serialize a successful read or update                       |
 | `created(data)`         |      201 | Serialize a successfully created resource                   |
@@ -206,9 +205,20 @@ The shared layer, not each route, must own:
   filesystem details.
 - Optional error details for validation failures.
 
-Until these helpers are implemented, do not invent a different success or error
-envelope in each route. When implementing the shared layer, update this guide
-with its final imports and exact payload contracts.
+Successful helpers serialize the typed payload directly. Errors use this shared
+shape:
+
+```typescript
+type ApiErrorResponse = {
+  error: {
+    code: string;
+    message: string;
+    details?: unknown;
+  };
+};
+```
+
+Do not invent a different success or error envelope in an individual route.
 
 The helpers belong under `src/app/api/_shared`, not in a domain module, because
 `Response`, HTTP status codes, and headers are transport concerns.
@@ -230,12 +240,13 @@ Every handler follows the same sequence:
 9. Return it through the standardized success helper.
 10. Delegate unknown errors to the shared API error handler.
 
-Conceptual example using the planned response helpers:
+Canonical example:
 
 ```typescript
-import { created, errorResponse } from "@/app/api/_shared/api-responses"; // Planned shared helper.
-import { handleApiError } from "@/app/api/_shared/api-error-handler"; // Planned.
-import { getProjectManagementModule } from "@/lib/container";
+import { created, errorResponse } from "@/app/api/_shared/api-responses";
+import { handleApiError } from "@/app/api/_shared/api-error-handler";
+import { ProjectDirectoryUnreadableError } from "@/backend/modules/project";
+import { getProjectModule } from "@/lib/container";
 import { toProjectResponse } from "./responses";
 import { parseCreateProjectRequest } from "./validation";
 
@@ -244,20 +255,26 @@ export async function POST(request: Request) {
     const parsed = parseCreateProjectRequest(await request.json());
     if (!parsed.ok) return errorResponse(parsed.error);
 
-    const projectManagementModule = await getProjectManagementModule();
-    const project = await projectManagementModule.addProject.execute(
+    const projectModule = await getProjectModule();
+    const project = await projectModule.addProject.execute(
       parsed.value,
     );
 
     return created(toProjectResponse(project.toPrimitives()));
   } catch (error: unknown) {
+    if (error instanceof ProjectDirectoryUnreadableError) {
+      return errorResponse({
+        status: 400,
+        code: "project_directory_unreadable",
+        message: error.message,
+      });
+    }
     return handleApiError(error);
   }
 }
 ```
 
-The imports marked as planned are documentation of the target API. Do not add
-route-local substitutes with the same responsibility.
+Do not add route-local substitutes with the same responsibility.
 
 ### Dynamic parameters in Next.js 15+
 
@@ -293,20 +310,18 @@ adding controller logic.
 
 The route distinguishes three error sources:
 
-1. **Malformed HTTP input**: returned immediately through the planned
+1. **Malformed HTTP input**: returned immediately through the
    `errorResponse(...)` helper.
-2. **Known domain or application errors**: thrown by the module and mapped by
-   the planned shared `handleApiError(...)` function.
-3. **Unknown failures**: caught and converted by `handleApiError(...)` to a safe
-   internal-error response.
+2. **Specific domain or application errors requiring custom status/codes**: caught inside the route handler's `catch` block and returned using `errorResponse(...)`. These must **never** be handled in the generic `handleApiError(...)`.
+3. **General validation or unknown failures**: delegated to the shared `handleApiError(...)` function (which covers `ZodError` mapping and fallback to `500` `internal_error`).
 
 Do not:
 
 - Repeat `Response.json({ error: ... })` in every handler.
-- Decide status mappings independently in each route.
+- Handle specific domain/application errors in the generic `handleApiError` utility.
 - Return `error.message` blindly to clients.
 - Catch an error only to discard it or silently return success.
-- import an HTTP response helper into the domain or application layer.
+- Import an HTTP response helper into the domain or application layer.
 
 The future shared error layer should use stable machine-readable codes as well
 as human-readable messages. Frontend behaviour must branch on codes or status,
@@ -380,10 +395,9 @@ Before considering an API route complete:
 - [ ] The success payload is built in `responses.ts`.
 - [ ] Response type names end in `Response` and use `camelCase`.
 - [ ] `responses.ts` is frontend-import-safe.
-- [ ] Success and failure use the shared standardized response layer once it is
-      implemented.
-- [ ] Unknown errors are delegated to the shared API error handler once it is
-      implemented.
+- [ ] Success and failure use the shared standardized response layer.
+- [ ] Specific domain/application errors requiring custom status/codes are caught locally in the route handler's catch block, not in `handleApiError`.
+- [ ] Unknown errors are delegated to the shared API error handler.
 - [ ] Frontend code imports types from `responses.ts`, never `route.ts`.
 - [ ] Tests cover valid input, invalid input, and error mapping.
 - [ ] `npm run typecheck` passes.

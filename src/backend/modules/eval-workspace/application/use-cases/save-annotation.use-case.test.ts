@@ -1,24 +1,13 @@
 import { describe, expect, it } from "vitest";
 import { SaveAnnotationUseCase } from "./save-annotation.use-case";
 import { EvalAnnotation } from "../../domain/entities/eval-annotation.entity";
-import type { EvalWorkspaceRepository } from "../../domain/repositories/eval-workspace.repository";
-import { EvalWorkspace } from "../../domain/entities/eval-workspace.entity";
+import type { EvalAnnotationRepository } from "../../domain/repositories/eval-annotation.repository";
 
 describe("SaveAnnotationUseCase", () => {
   it("validates and saves an annotation", async () => {
     let saved: EvalAnnotation | undefined;
-    const repo: EvalWorkspaceRepository = {
-      get: async () => EvalWorkspace.fromPrimitives({
-        workspaceRoot: null,
-        manifest: null,
-        suites: [],
-        cases: [],
-        runs: [],
-        results: [],
-        annotations: [],
-        diagnostics: [],
-      }),
-      saveAnnotation: async (annotation) => {
+    const repo: EvalAnnotationRepository = {
+      save: async (_workspaceRoot, annotation) => {
         saved = annotation;
         return annotation;
       },
@@ -39,18 +28,8 @@ describe("SaveAnnotationUseCase", () => {
   });
 
   it("rejects annotations without a valid score", async () => {
-    const repo: EvalWorkspaceRepository = {
-      get: async () => EvalWorkspace.fromPrimitives({
-        workspaceRoot: null,
-        manifest: null,
-        suites: [],
-        cases: [],
-        runs: [],
-        results: [],
-        annotations: [],
-        diagnostics: [],
-      }),
-      saveAnnotation: async (annotation) => annotation,
+    const repo: EvalAnnotationRepository = {
+      save: async (_workspaceRoot, annotation) => annotation,
     };
 
     const caseUuid = "550e8400-e29b-41d4-a716-446655440000";

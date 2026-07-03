@@ -28,18 +28,6 @@ function buildCase(caseId: string, name: string): EvalCase {
   };
 }
 
-function buildInput(overrides: Partial<CreateRunInput> = {}): CreateRunInput {
-  return {
-    name: "Mock run",
-    actionId: actionUuid,
-    caseIds: [caseUuid],
-    cases: [buildCase(caseUuid, "Case 1")],
-    provider: "mock",
-    model: "mock-model",
-    ...overrides,
-  };
-}
-
 class ThrowingEvalProviderRepository implements EvalProviderRepository {
   constructor(private readonly message: string) {}
 
@@ -72,13 +60,26 @@ describe("CreateRunUseCase", () => {
     await rm(workspaceRoot, { recursive: true, force: true });
   });
 
+  function buildInput(overrides: Partial<CreateRunInput> = {}): CreateRunInput {
+    return {
+      workspaceRoot,
+      name: "Mock run",
+      actionId: actionUuid,
+      caseIds: [caseUuid],
+      cases: [buildCase(caseUuid, "Case 1")],
+      provider: "mock",
+      model: "mock-model",
+      ...overrides,
+    };
+  }
+
   function buildUseCase(
     providerRepository: EvalProviderRepository = new MockEvalProviderRepository(),
   ) {
     return new CreateRunUseCase({
       providerRepository,
-      runRepository: new FilesystemEvalRunRepository(workspaceRoot),
-      resultRepository: new FilesystemEvalResultRepository(workspaceRoot),
+      runRepository: new FilesystemEvalRunRepository(),
+      resultRepository: new FilesystemEvalResultRepository(),
       eventBus,
     });
   }

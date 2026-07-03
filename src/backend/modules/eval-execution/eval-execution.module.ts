@@ -4,9 +4,9 @@ import { FilesystemEvalResultRepository } from "./infrastructure/repositories/fi
 import { MockEvalProviderRepository } from "./infrastructure/repositories/mock-eval-provider.repository";
 import type { EventBus } from "@/backend/modules/shared";
 
-export function createEvalExecutionModule(config: { workspaceRoot?: string; eventBus: EventBus }) {
-  const runRepository = new FilesystemEvalRunRepository(config.workspaceRoot);
-  const resultRepository = new FilesystemEvalResultRepository(config.workspaceRoot);
+export function createEvalExecutionModule(config: { eventBus: EventBus }) {
+  const runRepository = new FilesystemEvalRunRepository();
+  const resultRepository = new FilesystemEvalResultRepository();
   const providerRepository = new MockEvalProviderRepository();
 
   return {

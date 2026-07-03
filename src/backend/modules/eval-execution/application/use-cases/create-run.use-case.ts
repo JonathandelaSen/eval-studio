@@ -1,4 +1,5 @@
 import { Timestamp, type EventBus } from "@/backend/modules/shared";
+import { WorkspaceRoot } from "../../domain/value-objects/workspace-root.value-object";
 import { EvalResult } from "../../domain/entities/eval-result.entity";
 import { EvalRun } from "../../domain/entities/eval-run.entity";
 import { ActionId } from "../../domain/value-objects/action-id.value-object";
@@ -30,6 +31,7 @@ import type { EvalRunRepository } from "../../domain/repositories/eval-run.repos
 import type { EvalResultRepository } from "../../domain/repositories/eval-result.repository";
 
 export type CreateRunInput = {
+  workspaceRoot?: string;
   name: string;
   actionId: string;
   caseIds: string[];
@@ -52,10 +54,13 @@ export class CreateRunUseCase {
   async execute(input: CreateRunInput): Promise<EvalRun> {
     const context = this.buildContext(input);
     const evalRun = await this.createRun(input, context);
+    const workspaceRoot = input.workspaceRoot
+      ? WorkspaceRoot.fromPrimitives(input.workspaceRoot)
+      : undefined;
 
     for (const testCase of context.cases) {
       const evalResult = await this.runCase(testCase, evalRun, context);
-      await this.deps.resultRepository.save(evalResult);
+      await this.deps.resultRepository.save(workspaceRoot, evalResult);
       await this.deps.eventBus.publish(evalResult.pullDomainEvents());
     }
 
@@ -91,7 +96,11 @@ export class CreateRunUseCase {
       suiteId: SuiteIdNullable.empty(),
     });
 
-    await this.deps.runRepository.save(evalRun);
+    const workspaceRoot = input.workspaceRoot
+      ? WorkspaceRoot.fromPrimitives(input.workspaceRoot)
+      : undefined;
+
+    await this.deps.runRepository.save(workspaceRoot, evalRun);
     await this.deps.eventBus.publish(evalRun.pullDomainEvents());
 
     return evalRun;
