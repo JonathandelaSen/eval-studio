@@ -11,6 +11,7 @@ describe("SaveAnnotationUseCase", () => {
         saved = annotation;
         return annotation;
       },
+      deleteByRun: async (_workspaceRoot, runId) => runId,
     };
 
     const caseUuid = "550e8400-e29b-41d4-a716-446655440000";
@@ -30,6 +31,7 @@ describe("SaveAnnotationUseCase", () => {
   it("rejects annotations without a valid score", async () => {
     const repo: EvalAnnotationRepository = {
       save: async (_workspaceRoot, annotation) => annotation,
+      deleteByRun: async (_workspaceRoot, runId) => runId,
     };
 
     const caseUuid = "550e8400-e29b-41d4-a716-446655440000";

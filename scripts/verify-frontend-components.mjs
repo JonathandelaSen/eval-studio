@@ -78,15 +78,7 @@ const RULES = {
   },
 };
 
-const ALLOWLIST = {
-  "src/frontend/features/runs/components/runs-workspace.tsx": {
-    "direct-http-in-component": 2,
-    "hardcoded-visible-text": 26,
-    "max-lines": 1,
-    "too-many-components": 1,
-    "too-many-usestate": 1,
-  },
-};
+const ALLOWLIST = {};
 
 function listChangedFiles() {
   const tracked = spawnSync(

@@ -91,7 +91,7 @@ describe("CreateRunUseCase", () => {
     expect(run.toPrimitives().caseIds).toEqual([caseUuid]);
 
     const runArtifact = await readFile(
-      path.join(workspaceRoot, "runs", runId, "run.json"),
+      path.join(workspaceRoot, "runs", runId, "metadata.run.json"),
       "utf8",
     );
     expect(JSON.parse(runArtifact).name).toBe("Mock run");

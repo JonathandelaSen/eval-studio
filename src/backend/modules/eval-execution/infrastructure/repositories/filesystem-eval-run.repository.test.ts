@@ -35,6 +35,6 @@ describe("FilesystemEvalRunRepository", () => {
 
     await repo.save(WorkspaceRoot.fromPrimitives(workspaceRoot), run);
 
-    await expect(readFile(path.join(workspaceRoot, "runs/run-1/run.json"), "utf8")).resolves.toContain("Run 1");
+    await expect(readFile(path.join(workspaceRoot, "runs/run-1/metadata.run.json"), "utf8")).resolves.toContain("Run 1");
   });
 });

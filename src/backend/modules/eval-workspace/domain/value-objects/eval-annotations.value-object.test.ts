@@ -9,13 +9,13 @@ describe("EvalAnnotations", () => {
   it("round-trips annotation values", () => {
     const annotations = [
       {
-        annotationId: "ann1",
-        runId: "r1",
-        caseId: "c1",
         resultId: "res1",
-        humanScore: 1,
-        notes: "Excellent",
-        createdAt: "2026-07-03T00:00:00Z",
+        caseId: "c1",
+        runId: "r1",
+        updatedAt: "2026-07-03T00:00:00Z",
+        score: 4,
+        comment: "Excellent",
+        tags: ["accurate"],
       },
     ];
     expect(EvalAnnotations.fromPrimitives(annotations).toPrimitives()).toEqual(

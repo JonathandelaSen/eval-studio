@@ -1,7 +1,9 @@
 import { promises as fs } from "node:fs";
 import path from "node:path";
 import { WorkspaceRoot } from "../../domain/value-objects/workspace-root.value-object";
+import { EvalRunId } from "../../domain/value-objects/eval-run-id.value-object";
 import { EvalRun } from "../../domain/entities/eval-run.entity";
+import { RunNotFoundError } from "../../domain/errors/run-not-found.error";
 import type { EvalRunRepository } from "../../domain/repositories/eval-run.repository";
 
 export class FilesystemEvalRunRepository implements EvalRunRepository {
@@ -15,8 +17,45 @@ export class FilesystemEvalRunRepository implements EvalRunRepository {
     const primitives = run.toPrimitives();
     const directory = this.safeJoin(root, "runs", primitives.runId);
     await fs.mkdir(this.safeJoin(directory, "results"), { recursive: true });
-    await this.atomicWriteJson(this.safeJoin(directory, "run.json"), primitives);
+    await this.atomicWriteJson(
+      this.safeJoin(directory, "metadata.run.json"),
+      primitives,
+    );
     return run;
+  }
+
+  async find(
+    workspaceRoot: WorkspaceRoot | undefined,
+    runId: EvalRunId,
+  ): Promise<EvalRun> {
+    const root = this.requiredRoot(workspaceRoot?.toPrimitives());
+    const directory = this.safeJoin(root, "runs", runId.toPrimitives());
+    for (const fileName of ["metadata.run.json", "run.json"]) {
+      try {
+        const raw = await fs.readFile(this.safeJoin(directory, fileName), "utf8");
+        return EvalRun.fromPrimitives(JSON.parse(raw));
+      } catch {
+        continue;
+      }
+    }
+    throw new RunNotFoundError();
+  }
+
+  async delete(
+    workspaceRoot: WorkspaceRoot | undefined,
+    runId: EvalRunId,
+  ): Promise<EvalRunId> {
+    const root = this.requiredRoot(workspaceRoot?.toPrimitives());
+    const directory = this.safeJoin(root, "runs", runId.toPrimitives());
+    try {
+      const stat = await fs.stat(directory);
+      if (!stat.isDirectory()) throw new RunNotFoundError();
+    } catch (error) {
+      if (error instanceof RunNotFoundError) throw error;
+      throw new RunNotFoundError();
+    }
+    await fs.rm(directory, { recursive: true, force: true });
+    return runId;
   }
 
   private async atomicWriteJson(file: string, value: unknown) {

@@ -4,6 +4,7 @@ import type {
   EvalRunPrimitives,
 } from "@/backend/modules/eval-execution";
 import type { EvalAnnotationPrimitives } from "./eval-annotation.entity";
+import type { EvalCasePrimitives } from "./eval-case.entity";
 import { WorkspaceRootNullable } from "../value-objects/workspace-root-nullable.value-object";
 import { EvalManifestNullable } from "../value-objects/eval-manifest-nullable.value-object";
 import { EvalSuites } from "../value-objects/eval-suites.value-object";
@@ -38,21 +39,7 @@ export interface EvalSuitePrimitives extends JsonRecord {
   caseIds: string[];
 }
 
-export interface EvalCasePrimitives extends JsonRecord {
-  caseId: string;
-  actionId: string;
-  name: string;
-  note?: string;
-  createdAt: string;
-  createdBy?: JsonRecord;
-  input?: JsonRecord;
-  promptTemplate?: CapturedPromptPrimitives;
-  promptVariables?: JsonRecord;
-  renderedPrompt: CapturedPromptPrimitives;
-  runtime?: RuntimePrimitives;
-  expectedOutput?: JsonRecord;
-  source?: JsonRecord;
-}
+export type { EvalCasePrimitives } from "./eval-case.entity";
 
 export type WorkspaceDiagnostic = {
   path: string;

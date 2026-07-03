@@ -10,3 +10,4 @@ export type {
   EvalSuitePrimitives as EvalSuite,
   EvalWorkspacePrimitives,
 } from "./domain/entities/eval-workspace.entity";
+export type { WorkspaceJsonFilePrimitives } from "./domain/value-objects/workspace-json-file.value-object";

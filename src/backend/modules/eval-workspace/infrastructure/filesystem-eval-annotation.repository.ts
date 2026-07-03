@@ -1,6 +1,7 @@
 import { promises as fs } from "node:fs";
 import path from "node:path";
 import { WorkspaceRoot } from "../domain/value-objects/workspace-root.value-object";
+import { EvalRunId } from "../domain/value-objects/eval-run-id.value-object";
 import { EvalAnnotation } from "../domain/entities/eval-annotation.entity";
 import type { EvalAnnotationRepository } from "../domain/repositories/eval-annotation.repository";
 
@@ -25,6 +26,16 @@ export class FilesystemEvalAnnotationRepository
     await fs.mkdir(annotationDirectory, { recursive: true });
     await this.atomicWriteJson(file, primitives);
     return annotation;
+  }
+
+  async deleteByRun(
+    workspaceRoot: WorkspaceRoot | undefined,
+    runId: EvalRunId,
+  ): Promise<EvalRunId> {
+    const root = this.requiredRoot(workspaceRoot?.toPrimitives());
+    const directory = this.safeJoin(root, "annotations", runId.toPrimitives());
+    await fs.rm(directory, { recursive: true, force: true });
+    return runId;
   }
 
   private async atomicWriteJson(file: string, value: unknown) {

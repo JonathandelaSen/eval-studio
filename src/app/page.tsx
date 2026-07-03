@@ -31,7 +31,7 @@ export default async function Home() {
                 Workspace setup
               </p>
             )}
-            <h1 className="mt-1 font-serif text-3xl tracking-tight">Runs overview</h1>
+            <h1 className="mt-1 font-serif text-3xl tracking-tight">Overview</h1>
             {!activeProject && (
               <p className="mt-1 text-sm text-muted-foreground">
                 Add a project in Settings to begin.

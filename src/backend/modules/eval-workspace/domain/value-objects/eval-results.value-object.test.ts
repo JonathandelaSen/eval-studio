@@ -12,10 +12,10 @@ describe("EvalResults", () => {
         resultId: "res1",
         runId: "r1",
         caseId: "c1",
+        producer: "eval-studio",
         createdAt: "2026-07-03T00:00:00Z",
-        status: {
-          kind: "success" as const,
-        },
+        renderedPrompt: { format: "text" },
+        status: "completed" as const,
         latencyMs: 120,
         usage: null,
         rawOutput: "Success",
