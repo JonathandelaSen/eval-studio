@@ -4,6 +4,14 @@ import type {
   EvalRunPrimitives,
 } from "@/backend/modules/eval-execution";
 import type { EvalAnnotationPrimitives } from "./eval-annotation.entity";
+import { WorkspaceRootNullable } from "../value-objects/workspace-root-nullable.value-object";
+import { EvalManifestNullable } from "../value-objects/eval-manifest-nullable.value-object";
+import { EvalSuites } from "../value-objects/eval-suites.value-object";
+import { EvalCases } from "../value-objects/eval-cases.value-object";
+import { EvalRuns } from "../value-objects/eval-runs.value-object";
+import { EvalResults } from "../value-objects/eval-results.value-object";
+import { EvalAnnotations } from "../value-objects/eval-annotations.value-object";
+import { WorkspaceDiagnostics } from "../value-objects/workspace-diagnostics.value-object";
 
 export type JsonRecord = Record<string, unknown>;
 
@@ -62,16 +70,71 @@ export interface EvalWorkspacePrimitives {
   diagnostics: WorkspaceDiagnostic[];
 }
 
+export interface EvalWorkspaceCreateParams {
+  id: WorkspaceRootNullable;
+  manifest: EvalManifestNullable;
+  suites: EvalSuites;
+  cases: EvalCases;
+  runs: EvalRuns;
+  results: EvalResults;
+  annotations: EvalAnnotations;
+  diagnostics: WorkspaceDiagnostics;
+}
+
 export class EvalWorkspace extends AggregateRoot {
-  private constructor(private readonly primitives: EvalWorkspacePrimitives) {
+  private constructor(
+    private readonly workspaceRootVal: WorkspaceRootNullable,
+    private readonly manifestVal: EvalManifestNullable,
+    private readonly suitesVal: EvalSuites,
+    private readonly casesVal: EvalCases,
+    private readonly runsVal: EvalRuns,
+    private readonly resultsVal: EvalResults,
+    private readonly annotationsVal: EvalAnnotations,
+    private readonly diagnosticsVal: WorkspaceDiagnostics,
+  ) {
     super();
   }
 
   static fromPrimitives(primitives: EvalWorkspacePrimitives): EvalWorkspace {
-    return new EvalWorkspace(primitives);
+    return new EvalWorkspace(
+      WorkspaceRootNullable.fromPrimitives(primitives.workspaceRoot),
+      EvalManifestNullable.fromPrimitives(primitives.manifest),
+      EvalSuites.fromPrimitives(primitives.suites),
+      EvalCases.fromPrimitives(primitives.cases),
+      EvalRuns.fromPrimitives(primitives.runs),
+      EvalResults.fromPrimitives(primitives.results),
+      EvalAnnotations.fromPrimitives(primitives.annotations),
+      WorkspaceDiagnostics.fromPrimitives(primitives.diagnostics),
+    );
+  }
+
+  static create(input: EvalWorkspaceCreateParams): EvalWorkspace {
+    return new EvalWorkspace(
+      input.id,
+      input.manifest,
+      input.suites,
+      input.cases,
+      input.runs,
+      input.results,
+      input.annotations,
+      input.diagnostics,
+    );
+  }
+
+  get id(): WorkspaceRootNullable {
+    return this.workspaceRootVal;
   }
 
   toPrimitives(): EvalWorkspacePrimitives {
-    return this.primitives;
+    return {
+      workspaceRoot: this.workspaceRootVal.toPrimitives(),
+      manifest: this.manifestVal.toPrimitives(),
+      suites: this.suitesVal.toPrimitives(),
+      cases: this.casesVal.toPrimitives(),
+      runs: this.runsVal.toPrimitives(),
+      results: this.resultsVal.toPrimitives(),
+      annotations: this.annotationsVal.toPrimitives(),
+      diagnostics: this.diagnosticsVal.toPrimitives(),
+    };
   }
 }

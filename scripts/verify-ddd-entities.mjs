@@ -435,7 +435,17 @@ function checkEntityToPrimitivesDelegation(sourceFile, file, aggregate, violatio
   if (!toPrimitives) return;
 
   const objectLiteral = findReturnedObjectLiteral(toPrimitives);
-  if (!objectLiteral) return;
+  if (!objectLiteral) {
+    addViolation(
+      violations,
+      file,
+      "entity-to-primitives-must-return-object-literal",
+      `Aggregate ${className} method "toPrimitives()" must return an object literal directly to verify Value Object delegation.`,
+      sourceFile,
+      toPrimitives
+    );
+    return;
+  }
 
   for (const property of objectLiteral.properties) {
     if (!ts.isPropertyAssignment(property)) continue;
