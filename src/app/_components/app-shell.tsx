@@ -1,6 +1,6 @@
 "use client";
 
-import { FlaskConical, Home, Settings, Sparkles } from "lucide-react";
+import { FlaskConical, Home, Settings } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
@@ -72,16 +72,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           </nav>
 
           <div className="mt-auto hidden p-4 md:block">
-            <div className="rounded-lg border border-dashed border-white/12 p-3 text-stone-400">
-              <div className="flex items-center gap-2 text-xs font-medium text-stone-300">
-                <Sparkles className="size-3.5 text-amber-300" aria-hidden="true" />
-                More tools soon
-              </div>
-              <p className="mt-1.5 text-xs leading-relaxed">
-                This rail is ready for comparisons and datasets.
-              </p>
-            </div>
-            <div className="mt-4 flex items-center justify-between border-t border-white/10 pt-4">
+            <div className="flex items-center justify-between border-t border-white/10 pt-4">
               <span className="font-mono text-[0.65rem] uppercase tracking-widest text-stone-500">
                 v0.1
               </span>

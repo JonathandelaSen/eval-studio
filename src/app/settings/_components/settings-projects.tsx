@@ -50,15 +50,9 @@ export function SettingsProjects({
     <section aria-labelledby="projects-heading">
       <div className="flex flex-wrap items-end justify-between gap-4 border-b pb-4">
         <div>
-          <p className="font-mono text-[0.65rem] uppercase tracking-[0.18em] text-muted-foreground">
-            Local sources
-          </p>
-          <h2 id="projects-heading" className="mt-1 font-serif text-2xl">
+          <h2 id="projects-heading" className="font-serif text-2xl">
             Projects
           </h2>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Each project points to a directory containing evaluation artifacts.
-          </p>
         </div>
         <Button type="button" onClick={openBrowser}>
           <Plus className="size-4" aria-hidden="true" />

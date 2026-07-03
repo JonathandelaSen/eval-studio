@@ -26,15 +26,17 @@ export default async function Home() {
       <header className="border-b bg-card/70 backdrop-blur">
         <div className="mx-auto flex max-w-7xl flex-wrap items-end justify-between gap-4 px-5 py-5">
           <div>
-            <p className="font-mono text-[0.68rem] uppercase tracking-[0.18em] text-primary">
-              {activeProject ? "Evaluation desk" : "Workspace setup"}
-            </p>
+            {!activeProject && (
+              <p className="font-mono text-[0.68rem] uppercase tracking-[0.18em] text-primary">
+                Workspace setup
+              </p>
+            )}
             <h1 className="mt-1 font-serif text-3xl tracking-tight">Runs overview</h1>
-            <p className="mt-1 text-sm text-muted-foreground">
-              {activeProject
-                ? "Inspect experiments, results, and human annotations."
-                : "Add a project in Settings to begin."}
-            </p>
+            {!activeProject && (
+              <p className="mt-1 text-sm text-muted-foreground">
+                Add a project in Settings to begin.
+              </p>
+            )}
           </div>
           <div className="flex items-end gap-2">
             <ProjectSwitcher snapshot={registrySnapshot} />

@@ -6,10 +6,11 @@ describe("EvalProvider", () => {
     expect(EvalProvider.fromPrimitives("openai").toPrimitives()).toBe("openai");
     expect(EvalProvider.fromPrimitives("ollama").toPrimitives()).toBe("ollama");
     expect(EvalProvider.fromPrimitives("mock").toPrimitives()).toBe("mock");
+    expect(EvalProvider.fromPrimitives("custom-provider").toPrimitives()).toBe("custom-provider");
   });
 
-  it("throws on invalid provider value", () => {
-    expect(() => EvalProvider.fromPrimitives("invalid")).toThrow("Invalid provider: invalid");
+  it("throws on empty provider value", () => {
+    expect(() => EvalProvider.fromPrimitives(" ")).toThrow("Provider cannot be empty.");
   });
 
   it("identifies providers correctly with checkers and semantic constructors", () => {

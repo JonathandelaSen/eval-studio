@@ -14,13 +14,7 @@ export default async function SettingsPage() {
     <main id="content" tabIndex={-1} className="min-h-svh">
       <header className="border-b bg-card/70">
         <div className="mx-auto max-w-5xl px-5 py-7">
-          <p className="font-mono text-[0.68rem] uppercase tracking-[0.18em] text-primary">
-            Preferences
-          </p>
-          <h1 className="mt-1 font-serif text-3xl tracking-tight">Settings</h1>
-          <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted-foreground">
-            Connect local evaluation directories once, then move between them from the overview.
-          </p>
+          <h1 className="font-serif text-3xl tracking-tight">Settings</h1>
         </div>
       </header>
       <div className="mx-auto max-w-5xl px-5 py-8">

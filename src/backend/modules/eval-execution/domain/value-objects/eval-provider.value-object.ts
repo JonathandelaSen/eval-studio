@@ -1,29 +1,32 @@
 import { ValueObject } from "@/backend/modules/shared";
 
 export const EVAL_PROVIDERS = ["mock", "openai", "ollama"] as const;
-export type EvalProviderPrimitives = (typeof EVAL_PROVIDERS)[number];
+export type EvalProviderPrimitives = string;
 
 const MOCK_PROVIDER = EVAL_PROVIDERS[0];
 const OPENAI_PROVIDER = EVAL_PROVIDERS[1];
 const OLLAMA_PROVIDER = EVAL_PROVIDERS[2];
 
 class EvalProviderError extends Error {
-  constructor(value: string) {
-    super(`Invalid provider: ${value}`);
+  constructor(message: string) {
+    super(message);
     this.name = "EvalProviderError";
   }
 }
+
+const EMPTY_PROVIDER_MESSAGE = "Provider cannot be empty.";
 
 export class EvalProvider extends ValueObject<EvalProviderPrimitives> {
   private readonly value: EvalProviderPrimitives;
 
   private constructor(value: string) {
     super();
-    const matched = EVAL_PROVIDERS.find((p) => p === value);
-    if (!matched) {
-      throw new EvalProviderError(value);
+    const trimmed = value.trim();
+    if (!trimmed) {
+      throw new EvalProviderError(EMPTY_PROVIDER_MESSAGE);
     }
-    this.value = matched;
+    const matched = EVAL_PROVIDERS.find((p) => p === trimmed);
+    this.value = matched ?? trimmed;
   }
 
   static fromPrimitives(value: string): EvalProvider {
