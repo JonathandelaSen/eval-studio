@@ -48,6 +48,11 @@ export function RunsWorkspace({ snapshot }: { snapshot: EvalWorkspaceResponse })
     setResultId(null);
   }
 
+  function inspectCase(nextCaseId: string) {
+    setCaseId(nextCaseId);
+    setView("cases");
+  }
+
   const isEmpty = snapshot.cases.length === 0 && snapshot.runs.length === 0;
 
   return (
@@ -98,6 +103,7 @@ export function RunsWorkspace({ snapshot }: { snapshot: EvalWorkspaceResponse })
                   selectedResultId={resultId}
                   onSelectResult={setResultId}
                   mutations={mutations}
+                  onSelectCase={inspectCase}
                 />
               ) : (
                 <p className="rounded-lg border border-dashed px-4 py-10 text-center text-sm text-muted-foreground">
@@ -139,7 +145,7 @@ export function RunsWorkspace({ snapshot }: { snapshot: EvalWorkspaceResponse })
 function EmptyWorkspace() {
   return (
     <div className="rounded-lg border border-dashed px-6 py-16 text-center">
-      <h2 className="font-serif text-2xl tracking-tight">
+      <h2 className="font-sans text-xl font-bold tracking-tight text-foreground/90">
         {runsLabels.empty.workspaceTitle}
       </h2>
       <p className="mx-auto mt-2 max-w-md text-sm text-muted-foreground">

@@ -22,7 +22,7 @@ export function CaseList({
   return (
     <div className="rounded-lg border bg-card">
       <header className="border-b px-4 pb-3 pt-4">
-        <h2 className="font-serif text-lg tracking-tight">
+        <h2 className="font-sans text-base font-bold tracking-tight text-foreground/90">
           {runsLabels.cases.listTitle}
         </h2>
         <p className="mt-0.5 text-xs text-muted-foreground">

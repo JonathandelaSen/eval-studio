@@ -1,11 +1,12 @@
 import { ValueObject } from "@/backend/modules/shared";
 
-export const EVAL_PROVIDERS = ["mock", "openai", "ollama"] as const;
+export const EVAL_PROVIDERS = ["mock", "openai", "ollama", "apple"] as const;
 export type EvalProviderPrimitives = string;
 
 const MOCK_PROVIDER = EVAL_PROVIDERS[0];
 const OPENAI_PROVIDER = EVAL_PROVIDERS[1];
 const OLLAMA_PROVIDER = EVAL_PROVIDERS[2];
+const APPLE_PROVIDER = EVAL_PROVIDERS[3];
 
 class EvalProviderError extends Error {
   constructor(message: string) {
@@ -45,6 +46,10 @@ export class EvalProvider extends ValueObject<EvalProviderPrimitives> {
     return new EvalProvider(OLLAMA_PROVIDER);
   }
 
+  static apple(): EvalProvider {
+    return new EvalProvider(APPLE_PROVIDER);
+  }
+
   isMock(): boolean {
     return this.value === MOCK_PROVIDER;
   }
@@ -55,6 +60,10 @@ export class EvalProvider extends ValueObject<EvalProviderPrimitives> {
 
   isOllama(): boolean {
     return this.value === OLLAMA_PROVIDER;
+  }
+
+  isApple(): boolean {
+    return this.value === APPLE_PROVIDER;
   }
 
   toPrimitives(): EvalProviderPrimitives {

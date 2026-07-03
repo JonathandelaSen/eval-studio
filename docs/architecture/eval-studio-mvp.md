@@ -424,7 +424,7 @@ MVP providers:
 Provider design should be provider-agnostic:
 
 ```ts
-type EvalProvider = "mock" | "openai" | "ollama";
+type EvalProvider = "mock" | "openai" | "ollama" | "apple";
 
 type ExecutePromptInput = {
   provider: EvalProvider;

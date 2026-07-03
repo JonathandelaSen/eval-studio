@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { EvalProvider } from "./eval-provider.value-object";
+import { EVAL_PROVIDERS, EvalProvider } from "./eval-provider.value-object";
 
 describe("EvalProvider", () => {
   it("creates and round-trips valid providers", () => {
@@ -26,5 +26,10 @@ describe("EvalProvider", () => {
     const ollama = EvalProvider.ollama();
     expect(ollama.toPrimitives()).toBe("ollama");
     expect(ollama.isOllama()).toBe(true);
+
+    const apple = EvalProvider.apple();
+    expect(EVAL_PROVIDERS).toContain("apple");
+    expect(apple.toPrimitives()).toBe("apple");
+    expect(apple.isApple()).toBe(true);
   });
 });

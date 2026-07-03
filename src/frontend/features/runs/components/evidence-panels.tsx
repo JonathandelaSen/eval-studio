@@ -66,7 +66,7 @@ export function EvidencePanel({
       {empty ? (
         <p className="px-3 py-3 text-xs text-muted-foreground">{emptyLabel}</p>
       ) : (
-        <pre className="max-h-[420px] min-h-0 flex-1 overflow-auto bg-foreground p-3 text-xs leading-5 text-background">
+        <pre className="max-h-[420px] min-h-0 flex-1 overflow-auto bg-muted/30 p-3 text-[11px] leading-relaxed text-foreground font-mono">
           <code>{entry.value}</code>
         </pre>
       )}

@@ -42,32 +42,35 @@ export function CaseDetail({
     <div className="flex min-w-0 flex-col gap-3">
       <header className="rounded-lg border bg-card px-5 py-4">
         <div className="flex flex-wrap items-center gap-3">
-          <h2 className="min-w-0 truncate font-serif text-2xl tracking-tight">
+          <h2 className="min-w-0 truncate font-sans text-base font-bold tracking-tight text-foreground/90">
             {testCase.name}
           </h2>
-          <span className="font-mono text-[0.68rem] text-muted-foreground">
+          <span className="font-mono text-[0.68rem] text-muted-foreground select-none">
             {formatDate(testCase.createdAt)}
           </span>
-          <div className="ml-auto flex shrink-0 gap-1">
+          <div className="ml-auto flex shrink-0 gap-1.5">
             <Button
               type="button"
-              variant="ghost"
-              size="icon"
+              variant="outline"
+              size="sm"
+              className="h-7 px-2 text-[11px] font-medium border-border hover:bg-muted text-muted-foreground hover:text-foreground flex items-center gap-1"
               aria-label={runsLabels.cases.edit}
               onClick={() => setEditing((value) => !value)}
             >
-              <Pencil aria-hidden="true" />
+              <Pencil className="size-3" />
+              <span>Edit</span>
             </Button>
             <Button
               type="button"
-              variant="ghost"
-              size="icon"
+              variant="outline"
+              size="sm"
+              className="h-7 px-2 text-[11px] font-medium border-red-200 hover:border-red-500 bg-red-500/[0.02] dark:bg-red-500/[0.01] hover:bg-red-500/10 text-red-600 dark:text-red-400 hover:text-red-600 dark:hover:text-red-400 flex items-center gap-1"
               aria-label={runsLabels.cases.delete}
-              className="text-destructive hover:bg-destructive/10 hover:text-destructive"
               onClick={removeCase}
               disabled={mutations.busy}
             >
-              <Trash2 aria-hidden="true" />
+              <Trash2 className="size-3" />
+              <span>Delete</span>
             </Button>
           </div>
         </div>
@@ -98,7 +101,7 @@ export function CaseDetail({
         <section className="bg-accent/5 px-5 py-4">
           <ZoneLabel tone="accent">{runsLabels.spotlight.expectedLabel}</ZoneLabel>
           {expectedText ? (
-            <p className="mt-2 whitespace-pre-wrap font-serif text-lg leading-relaxed">
+            <p className="mt-2 whitespace-pre-wrap font-sans text-sm leading-relaxed text-foreground/90">
               {expectedText}
             </p>
           ) : (

@@ -352,7 +352,7 @@ Runtime fields:
 
 | Field | Required | Type and constraints |
 | --- | --- | --- |
-| `provider` | Yes | One of `"mock"`, `"openai"`, or `"ollama"`. |
+| `provider` | Yes | One of `"mock"`, `"openai"`, `"ollama"`, or `"apple"`. |
 | `model` | Yes | Non-empty string. |
 | `temperature` | No | Number from `0` through `2`, or `null`. |
 
@@ -526,7 +526,7 @@ Before connecting or refreshing the workspace, verify all of the following:
 - A suite's `actionId` matches all its cases.
 - Every `caseId` in a suite has a corresponding case file.
 - Every case contains the exact final `renderedPrompt` and a non-empty `format`.
-- Every run has at least one case and uses only `mock`, `openai`, or `ollama`.
+- Every run has at least one case and uses only `mock`, `openai`, `ollama`, or `apple`.
 - Imported runs and results use `producer: "eval-studio"`.
 - Every result references an existing run and case, and preserves the prompt used.
 - Every annotation references an existing result, run, and case.
@@ -554,7 +554,7 @@ Common causes of missing or invalid data:
 | Run does not appear | Confirm its file ends in `.run.json`; `run.json` alone is not discovered by the current reader. |
 | Result or annotation does not appear | Confirm it is under the correct search root and has the correct suffix. |
 | Creating a run fails with an ID error | Replace slug-style `actionId` and `caseId` values with UUIDs everywhere. |
-| Runtime is rejected | Use `mock`, `openai`, or `ollama`; use a non-empty model and temperature from `0` to `2`. |
+| Runtime is rejected | Use `mock`, `openai`, `ollama`, or `apple`; use a non-empty model and temperature from `0` to `2`. |
 | Imported run/result is rejected | Use `producer: "eval-studio"` and verify all required IDs and timestamps. |
 | Data appears disconnected | Compare referenced IDs character-for-character; paths do not create relationships. |
 
