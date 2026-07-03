@@ -1,5 +1,5 @@
 import { AggregateRoot, Timestamp } from "@/backend/modules/shared";
-import { ActionId } from "../value-objects/action-id.value-object";
+import { SuiteId } from "../value-objects/suite-id.value-object";
 import { CaseId } from "../value-objects/case-id.value-object";
 import { CaseName } from "../value-objects/case-name.value-object";
 import type {
@@ -10,7 +10,7 @@ import type {
 
 export interface EvalCasePrimitives extends JsonRecord {
   caseId: string;
-  actionId: string;
+  suiteId: string;
   name: string;
   note?: string;
   createdAt: string;
@@ -27,7 +27,7 @@ export interface EvalCasePrimitives extends JsonRecord {
 export class EvalCase extends AggregateRoot {
   private constructor(
     private readonly caseIdValue: CaseId,
-    private readonly actionIdValue: ActionId,
+    private readonly suiteIdValue: SuiteId,
     private readonly nameValue: CaseName,
     private readonly createdAtValue: Timestamp,
     private readonly primitives: EvalCasePrimitives,
@@ -38,7 +38,7 @@ export class EvalCase extends AggregateRoot {
   static fromPrimitives(primitives: EvalCasePrimitives): EvalCase {
     return new EvalCase(
       CaseId.fromPrimitives(primitives.caseId),
-      ActionId.fromPrimitives(primitives.actionId),
+      SuiteId.fromPrimitives(primitives.suiteId),
       CaseName.fromPrimitives(primitives.name),
       Timestamp.fromPrimitives(primitives.createdAt),
       primitives,
@@ -49,11 +49,17 @@ export class EvalCase extends AggregateRoot {
     return this.caseIdValue;
   }
 
+  get suiteId(): SuiteId {
+    return this.suiteIdValue;
+  }
+
   toPrimitives(): EvalCasePrimitives {
+    const primitives = { ...this.primitives };
+    delete primitives.actionId;
     return {
-      ...this.primitives,
+      ...primitives,
       caseId: this.caseIdValue.toPrimitives(),
-      actionId: this.actionIdValue.toPrimitives(),
+      suiteId: this.suiteIdValue.toPrimitives(),
       name: this.nameValue.toPrimitives(),
       createdAt: this.createdAtValue.toPrimitives(),
     };

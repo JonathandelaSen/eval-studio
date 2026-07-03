@@ -6,13 +6,13 @@ describe("toUpdateRunResponse", () => {
     const run = {
       runId: "run-1",
       name: "Baseline",
-      actionId: "550e8400-e29b-41d4-a716-446655440000",
+      suiteId: "550e8400-e29b-41d4-a716-446655440000",
       producer: "eval-studio",
       createdAt: "2026-07-01T00:00:00.000Z",
       caseIds: ["550e8400-e29b-41d4-a716-446655440001"],
       runtime: null,
       notes: null,
-      suiteId: null,
+      status: "completed" as const,
     };
 
     const response = toUpdateRunResponse(run);

@@ -11,7 +11,7 @@ const caseId = "550e8400-e29b-41d4-a716-446655440001";
 
 const casePrimitives: EvalCasePrimitives = {
   caseId,
-  actionId: "550e8400-e29b-41d4-a716-446655440000",
+  suiteId: "550e8400-e29b-41d4-a716-446655440000",
   name: "Summarize invoice",
   note: "Focus on totals",
   createdAt: "2026-07-01T00:00:00.000Z",
@@ -62,6 +62,23 @@ describe("UpdateCaseUseCase", () => {
     await useCase().execute({ workspaceRoot, caseId, note: null });
     persisted = JSON.parse(await fs.readFile(caseFile, "utf8"));
     expect(persisted.note).toBeUndefined();
+  });
+
+  it("updates the executable messages prompt", async () => {
+    const updated = await useCase().execute({
+      workspaceRoot,
+      caseId,
+      systemInstruction: "Use only facts.",
+      userMessage: "Summarize this invoice.",
+    });
+
+    expect(updated.toPrimitives().renderedPrompt).toEqual({
+      format: "messages",
+      messages: [
+        { role: "system", content: "Use only facts." },
+        { role: "user", content: "Summarize this invoice." },
+      ],
+    });
   });
 
   it("rejects an empty name", async () => {

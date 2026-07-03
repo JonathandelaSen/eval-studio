@@ -8,6 +8,8 @@ export type UpdateCaseInput = {
   caseId: string;
   name?: string;
   note?: string | null;
+  systemInstruction?: string;
+  userMessage?: string;
 };
 
 export class UpdateCaseUseCase {
@@ -20,11 +22,26 @@ export class UpdateCaseUseCase {
     const caseId = CaseId.fromPrimitives(input.caseId);
     const existing = await this.deps.caseRepository.find(workspaceRoot, caseId);
     const primitives = existing.toPrimitives();
+    const renderedPrompt = input.userMessage === undefined
+      ? primitives.renderedPrompt
+      : {
+          format: "messages",
+          messages: [
+            ...(input.systemInstruction?.trim()
+              ? [{ role: "system", content: input.systemInstruction.trim() }]
+              : []),
+            { role: "user", content: input.userMessage.trim() },
+          ],
+        };
+    if (input.userMessage !== undefined && !input.userMessage.trim()) {
+      throw new Error("User message cannot be empty.");
+    }
     const updated = EvalCase.fromPrimitives({
       ...primitives,
       name: input.name ?? primitives.name,
       note:
         input.note === undefined ? primitives.note : input.note ?? undefined,
+      renderedPrompt,
     });
     return this.deps.caseRepository.save(workspaceRoot, updated);
   }

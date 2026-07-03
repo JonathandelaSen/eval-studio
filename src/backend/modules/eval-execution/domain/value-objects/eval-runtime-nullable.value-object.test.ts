@@ -8,6 +8,7 @@ describe("EvalRuntimeNullable", () => {
       provider: "openai",
       model: "gpt-5 mini",
       temperature: 1.5,
+      metadata: null,
     });
     const nullable = EvalRuntimeNullable.fromValue(inner);
 
@@ -17,6 +18,7 @@ describe("EvalRuntimeNullable", () => {
       provider: "openai",
       model: "gpt-5 mini",
       temperature: 1.5,
+      metadata: null,
     });
   });
 
@@ -43,6 +45,7 @@ describe("EvalRuntimeNullable", () => {
       provider: "ollama",
       model: "llama3",
       temperature: null,
+      metadata: null,
     };
     const nullable = EvalRuntimeNullable.fromPrimitives(primitives);
 
@@ -52,6 +55,7 @@ describe("EvalRuntimeNullable", () => {
       provider: "ollama",
       model: "llama3",
       temperature: null,
+      metadata: null,
     });
   });
 

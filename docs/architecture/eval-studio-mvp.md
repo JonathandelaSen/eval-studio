@@ -1,6 +1,6 @@
 # Eval Studio MVP
 
-Eval Studio is a separate local web application for reviewing, scoring, comparing, and eventually running evaluations for AI-backed product actions.
+Eval Studio is a separate local web application for reviewing, scoring, comparing, and running Suites of executable AI evaluation Cases.
 
 The first consumer is Fabra, but the app must not be coupled to Fabra internals. It reads and writes a shared file-based evaluation workspace.
 
@@ -24,7 +24,7 @@ Eval Studio should make it easy to answer:
 - Eval Studio reads evaluation artifacts from a folder such as `/Users/jon/DEV/repos/fabra/evals`.
 - Fabra can produce cases and baseline results.
 - Eval Studio can produce additional runs/results.
-- The primary evaluation unit is an AI-backed product action, not a prompt file alone.
+- The primary evaluation scope is a Suite, not a prompt file alone.
 - Cases store prompt templates, prompt variables, and rendered prompts when available.
 - Human scoring uses one score from `0` to `5`.
 - Human annotations can include a comment and tags.
@@ -100,13 +100,12 @@ All MVP artifacts are plain JSON files.
 
 ## Suite
 
-A suite groups cases for one product action.
+A suite is a visible evaluation scope that owns its cases and runs.
 
 ```json
 {
   "schemaVersion": "1",
   "suiteId": "job_match_analysis.score_cv_against_offer",
-  "actionId": "job_match_analysis.score_cv_against_offer",
   "name": "Job match scoring",
   "description": "Cases for scoring a CV against a job description.",
   "caseIds": ["job-match-analysis.score_cv_against_offer.senior-backend-node"]
@@ -115,7 +114,7 @@ A suite groups cases for one product action.
 
 ## Case
 
-A case is a reproducible situation for an AI-backed product action.
+A case is a reproducible, executable evaluation situation owned by one suite.
 
 Cases should be self-contained enough for Eval Studio to inspect and execute without starting Fabra.
 
@@ -123,7 +122,7 @@ Cases should be self-contained enough for Eval Studio to inspect and execute wit
 {
   "schemaVersion": "1",
   "caseId": "job-match-analysis.score_cv_against_offer.senior-backend-node",
-  "actionId": "job_match_analysis.score_cv_against_offer",
+  "suiteId": "job_match_analysis.score_cv_against_offer",
   "name": "Senior backend with missing Node requirement",
   "note": "The result should strongly penalize the missing Node.js requirement.",
   "createdAt": "2026-06-22T10:00:00.000Z",
@@ -199,7 +198,7 @@ A run is one experiment over one or more cases.
   "schemaVersion": "1",
   "runId": "2026-06-22T111500Z.openai-gpt-4.1-prompt-v2",
   "name": "OpenAI GPT-4.1 prompt v2",
-  "actionId": "job_match_analysis.score_cv_against_offer",
+  "suiteId": "job_match_analysis.score_cv_against_offer",
   "producer": "eval-studio",
   "createdAt": "2026-06-22T11:15:00.000Z",
   "caseIds": ["job-match-analysis.score_cv_against_offer.senior-backend-node"],
@@ -335,7 +334,7 @@ Show:
 
 - Run name
 - Producer
-- Action id
+- Suite
 - Provider/model
 - Created date
 - Number of cases
@@ -345,7 +344,7 @@ Show:
 Primary actions:
 
 - Open run
-- Compare with another run from the same action
+- Compare with another run from the same Suite
 - Create new run from a suite or selected cases
 
 ### Run Detail View
@@ -379,7 +378,7 @@ The prompt tab must be one click away and should show the full rendered prompt/m
 
 ### Compare Runs View
 
-Compare two runs for the same action/suite.
+Compare two runs for the same Suite.
 
 Show a table:
 
@@ -415,11 +414,11 @@ Execution should write `run.json` first, then write result files as each case co
 
 ## Providers
 
-MVP providers:
+Initial providers:
 
 1. `mock`
-2. `openai`
-3. `ollama`
+2. `ollama`
+3. `apple` (`SystemLanguageModel.default`)
 
 Provider design should be provider-agnostic:
 
@@ -434,9 +433,10 @@ type ExecutePromptInput = {
 };
 ```
 
-OpenAI should use `OPENAI_API_KEY` and optional `OPENAI_BASE_URL`.
-
 Ollama should use `OLLAMA_BASE_URL` and should not require an API key.
+
+Apple should use the on-device Apple Intelligence system model and expose its
+availability reason when the device, settings, or downloaded model are not ready.
 
 Mock should return deterministic output clearly marked as mock output.
 
@@ -631,7 +631,6 @@ Likely value objects:
 - `CaseId`
 - `EvalRunId`
 - `ResultId`
-- `ActionId`
 - `ProviderName`
 - `ModelName`
 - `PromptTemplate`

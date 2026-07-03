@@ -11,33 +11,35 @@ import {
 } from "@/frontend/components/ui/tabs";
 import { useWorkspaceMutations } from "../hooks/use-workspace-mutations";
 import { runsLabels } from "../labels";
-import { casesForAction, runsForAction } from "../workspace-format";
-import { ActionFilter } from "./action-filter";
+import { casesForSuite, runsForSuite } from "../workspace-format";
 import { CaseDetail } from "./case-detail";
 import { CaseList } from "./case-list";
 import { DiagnosticsPanel } from "./diagnostics-panel";
 import { NewRunPanel } from "./new-run-panel";
 import { RunDetail } from "./run-detail";
 import { RunList } from "./run-list";
-import { WorkspaceStrip } from "./workspace-strip";
 import { WorkspaceFilesPanel } from "@/frontend/features/workspace-files";
+import { SuiteBar } from "./suite-bar";
+import { NewCasePanel } from "./new-case-panel";
+import { useRouter } from "next/navigation";
 
 export function RunsWorkspace({ snapshot }: { snapshot: EvalWorkspaceResponse }) {
   const mutations = useWorkspaceMutations();
+  const router = useRouter();
   const [view, setView] = React.useState("runs");
-  const [actionId, setActionId] = React.useState<string | null>(null);
+  const [suiteId, setSuiteId] = React.useState<string | null>(snapshot.suites[0]?.suiteId ?? null);
   const [runId, setRunId] = React.useState<string | null>(null);
   const [caseId, setCaseId] = React.useState<string | null>(null);
   const [resultId, setResultId] = React.useState<string | null>(null);
 
-  const runs = runsForAction(snapshot, actionId);
-  const cases = casesForAction(snapshot, actionId);
+  const runs = runsForSuite(snapshot, suiteId);
+  const cases = casesForSuite(snapshot, suiteId);
   const activeRun = runs.find((run) => run.runId === runId) ?? runs[0];
   const activeCase =
     cases.find((testCase) => testCase.caseId === caseId) ?? cases[0];
 
-  function selectAction(next: string | null) {
-    setActionId(next);
+  function selectSuite(next: string) {
+    setSuiteId(next);
     setRunId(null);
     setCaseId(null);
     setResultId(null);
@@ -53,12 +55,16 @@ export function RunsWorkspace({ snapshot }: { snapshot: EvalWorkspaceResponse })
     setView("cases");
   }
 
-  const isEmpty = snapshot.cases.length === 0 && snapshot.runs.length === 0;
+  React.useEffect(() => {
+    if (!snapshot.runs.some((run) => run.status === "queued" || run.status === "running")) return;
+    const interval = window.setInterval(() => router.refresh(), 1200);
+    return () => window.clearInterval(interval);
+  }, [router, snapshot.runs]);
 
   return (
     <div className="mx-auto flex max-w-[1600px] flex-col gap-3 px-5 py-4">
-      <WorkspaceStrip snapshot={snapshot} />
       <DiagnosticsPanel diagnostics={snapshot.diagnostics} />
+      <SuiteBar snapshot={snapshot} suiteId={suiteId} onSelect={selectSuite} mutations={mutations} />
       {mutations.error ? (
         <p className="flex items-center gap-2 rounded-md border border-destructive/50 bg-destructive/10 px-3 py-2 text-sm text-destructive">
           <AlertCircle aria-hidden="true" className="size-4" />
@@ -72,16 +78,9 @@ export function RunsWorkspace({ snapshot }: { snapshot: EvalWorkspaceResponse })
               <TabsTrigger value="cases">{runsLabels.views.cases}</TabsTrigger>
               <TabsTrigger value="files">{runsLabels.views.files}</TabsTrigger>
             </TabsList>
-            {view !== "files" ? (
-              <ActionFilter
-                snapshot={snapshot}
-                selectedActionId={actionId}
-                onSelectAction={selectAction}
-              />
-            ) : null}
           </div>
           <TabsContent value="runs" className="mt-3">
-            {isEmpty ? <EmptyWorkspace /> : <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-[320px_minmax(0,1fr)]">
+            {!suiteId ? <EmptyWorkspace /> : <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-[320px_minmax(0,1fr)]">
               <div className="flex min-w-0 flex-col gap-3">
                 <RunList
                   snapshot={snapshot}
@@ -89,11 +88,7 @@ export function RunsWorkspace({ snapshot }: { snapshot: EvalWorkspaceResponse })
                   selectedRunId={activeRun?.runId ?? null}
                   onSelectRun={selectRun}
                 />
-                <NewRunPanel
-                  cases={snapshot.cases}
-                  actionId={actionId}
-                  mutations={mutations}
-                />
+                {cases.length > 0 ? <NewRunPanel cases={cases} suiteId={suiteId} mutations={mutations} /> : <NewCasePanel suiteId={suiteId} mutations={mutations} />}
               </div>
               {activeRun ? (
                 <RunDetail
@@ -113,13 +108,11 @@ export function RunsWorkspace({ snapshot }: { snapshot: EvalWorkspaceResponse })
             </div>}
           </TabsContent>
           <TabsContent value="cases" className="mt-3">
-            {isEmpty ? <EmptyWorkspace /> : <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-[320px_minmax(0,1fr)]">
-              <CaseList
-                snapshot={snapshot}
-                cases={cases}
-                selectedCaseId={activeCase?.caseId ?? null}
-                onSelectCase={setCaseId}
-              />
+            {!suiteId ? <EmptyWorkspace /> : <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-[320px_minmax(0,1fr)]">
+              <div className="flex min-w-0 flex-col gap-3">
+                <CaseList snapshot={snapshot} cases={cases} selectedCaseId={activeCase?.caseId ?? null} onSelectCase={setCaseId} />
+                <NewCasePanel suiteId={suiteId} mutations={mutations} />
+              </div>
               {activeCase ? (
                 <CaseDetail
                   key={activeCase.caseId}

@@ -10,7 +10,6 @@ describe("EvalSuites", () => {
     const suites = [
       {
         suiteId: "s1",
-        actionId: "a1",
         name: "Suite 1",
         caseIds: ["c1", "c2"],
       },

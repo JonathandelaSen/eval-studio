@@ -9,7 +9,7 @@ import {
   resultsForRun,
   type EvalRunItem,
 } from "../workspace-format";
-import { ScoreDots } from "./runtime-chip";
+import { RuntimeChip, ScoreDots } from "./runtime-chip";
 
 export function RunList({
   snapshot,
@@ -55,7 +55,6 @@ function RunCard({
 }) {
   const results = resultsForRun(snapshot, run.runId);
   const average = averageScore(results, snapshot.annotations);
-  const modelName = run.runtime?.model || run.producer;
 
   return (
     <button
@@ -63,24 +62,28 @@ function RunCard({
       role="listitem"
       onClick={() => onSelect(run.runId)}
       className={cn(
-        "flex items-center justify-between gap-3 rounded-lg border p-2.5 text-left transition-all duration-200",
+        "flex flex-col gap-2 rounded-lg border p-2.5 text-left transition-all duration-200",
         selected
           ? "border-primary bg-primary/5 shadow-sm"
           : "border-border/50 bg-card hover:bg-muted/40"
       )}
     >
-      <div className="flex-1 min-w-0">
-        <span className="block truncate text-xs font-semibold text-foreground">
+      <div className="flex w-full items-start justify-between gap-3">
+        <span className="truncate text-xs font-semibold text-foreground">
           {run.name}
         </span>
-        <div className="mt-1 flex flex-wrap items-center gap-1.5 text-[10px] text-muted-foreground font-mono">
-          <span>{formatDate(run.createdAt)}</span>
-          <span className="text-muted-foreground/40">•</span>
-          <span className="truncate">{modelName}</span>
+        <div className="shrink-0">
+          <ScoreDots score={average} labelWhenEmpty={runsLabels.runs.noScore} />
         </div>
       </div>
-      <div className="shrink-0">
-        <ScoreDots score={average} labelWhenEmpty={runsLabels.runs.noScore} />
+      <span className="w-fit rounded-full border px-2 py-0.5 font-mono text-[9px] uppercase tracking-wide text-muted-foreground">
+        {run.status.replaceAll("_", " ")}
+      </span>
+      <div className="flex w-full flex-wrap items-center justify-between gap-2">
+        <span className="font-mono text-[9px] text-muted-foreground select-none">
+          {formatDate(run.createdAt)}
+        </span>
+        <RuntimeChip runtime={run.runtime} fallback={run.producer} size="sm" />
       </div>
     </button>
   );

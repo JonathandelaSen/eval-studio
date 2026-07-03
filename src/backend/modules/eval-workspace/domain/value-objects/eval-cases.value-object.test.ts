@@ -10,7 +10,7 @@ describe("EvalCases", () => {
     const cases = [
       {
         caseId: "c1",
-        actionId: "a1",
+        suiteId: "s1",
         name: "Case 1",
         createdAt: "2026-07-03T00:00:00Z",
         renderedPrompt: {

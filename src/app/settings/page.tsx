@@ -14,7 +14,7 @@ export default async function SettingsPage() {
     <main id="content" tabIndex={-1} className="min-h-svh">
       <header className="border-b bg-card/70">
         <div className="mx-auto max-w-5xl px-5 py-7">
-          <h1 className="font-serif text-3xl tracking-tight">Settings</h1>
+          <h1 className="font-sans text-2xl font-bold tracking-tight text-foreground/90">Settings</h1>
         </div>
       </header>
       <div className="mx-auto max-w-5xl px-5 py-8">

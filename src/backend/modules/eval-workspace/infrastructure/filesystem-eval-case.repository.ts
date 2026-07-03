@@ -21,8 +21,18 @@ export class FilesystemEvalCaseRepository implements EvalCaseRepository {
     workspaceRoot: WorkspaceRoot | undefined,
     evalCase: EvalCase,
   ): Promise<EvalCase> {
-    const located = await this.locate(workspaceRoot, evalCase.id);
-    await this.atomicWriteJson(located.file, evalCase.toPrimitives());
+    const primitives = evalCase.toPrimitives();
+    let file: string;
+    try {
+      file = (await this.locate(workspaceRoot, evalCase.id)).file;
+    } catch (error) {
+      if (!(error instanceof CaseNotFoundError)) throw error;
+      const root = this.requiredRoot(workspaceRoot?.toPrimitives());
+      const directory = this.safeJoin(root, "suites", primitives.suiteId, "cases");
+      await fs.mkdir(directory, { recursive: true });
+      file = this.safeJoin(directory, `${primitives.caseId}.case.json`);
+    }
+    await this.atomicWriteJson(file, primitives);
     return evalCase;
   }
 
@@ -44,7 +54,11 @@ export class FilesystemEvalCaseRepository implements EvalCaseRepository {
     for (const file of files) {
       try {
         const raw = await fs.readFile(file, "utf8");
-        const parsed = JSON.parse(raw) as Parameters<typeof EvalCase.fromPrimitives>[0];
+        const rawValue = JSON.parse(raw) as Record<string, unknown>;
+        const parsed = {
+          ...rawValue,
+          suiteId: rawValue.suiteId ?? rawValue.actionId,
+        } as Parameters<typeof EvalCase.fromPrimitives>[0];
         if (parsed.caseId === target) return { file, primitives: parsed };
       } catch {
         continue;

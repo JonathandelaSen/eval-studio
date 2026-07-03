@@ -74,6 +74,7 @@ export class FilesystemEvalWorkspaceRepository
       this.collect(rootPath, "result", "runs", snapshot),
       this.collect(rootPath, "annotation", "annotations", snapshot),
     ]);
+    this.normalizeSuiteOwnership(snapshot);
 
     return EvalWorkspace.fromPrimitives(snapshot);
   }
@@ -142,7 +143,15 @@ export class FilesystemEvalWorkspaceRepository
   private parseKind(kind: ArtifactKind, value: unknown) {
     if (kind === "suite") return this.parseSuite(value);
     if (kind === "case") return this.parseCase(value);
-    if (kind === "run") return EvalRun.fromPrimitives(value as Parameters<typeof EvalRun.fromPrimitives>[0]).toPrimitives();
+    if (kind === "run") {
+      this.assertRecord(value, "run");
+      const legacyActionId = typeof value.actionId === "string" ? value.actionId : undefined;
+      return EvalRun.fromPrimitives({
+        ...value,
+        suiteId: value.suiteId ?? legacyActionId,
+        status: value.status ?? "completed",
+      } as Parameters<typeof EvalRun.fromPrimitives>[0]).toPrimitives();
+    }
     if (kind === "result") return EvalResult.fromPrimitives(value as Parameters<typeof EvalResult.fromPrimitives>[0]).toPrimitives();
     return EvalAnnotation.fromPrimitives(value as EvalAnnotationPrimitives).toPrimitives();
   }
@@ -157,7 +166,6 @@ export class FilesystemEvalWorkspaceRepository
   private parseSuite(value: unknown): EvalSuitePrimitives {
     this.assertRecord(value, "suite");
     this.assertString(value.suiteId, "suite.suiteId");
-    this.assertString(value.actionId, "suite.actionId");
     this.assertString(value.name, "suite.name");
     this.assertStringArray(value.caseIds, "suite.caseIds");
     return value as EvalSuitePrimitives;
@@ -166,12 +174,30 @@ export class FilesystemEvalWorkspaceRepository
   private parseCase(value: unknown): EvalCasePrimitives {
     this.assertRecord(value, "case");
     this.assertString(value.caseId, "case.caseId");
-    this.assertString(value.actionId, "case.actionId");
+    const suiteId = value.suiteId ?? value.actionId;
+    this.assertString(suiteId, "case.suiteId");
     this.assertString(value.name, "case.name");
     this.assertString(value.createdAt, "case.createdAt");
     this.assertRecord(value.renderedPrompt, "case.renderedPrompt");
     this.assertString(value.renderedPrompt.format, "case.renderedPrompt.format");
-    return value as EvalCasePrimitives;
+    const rest = { ...value };
+    delete rest.actionId;
+    return { ...rest, suiteId } as EvalCasePrimitives;
+  }
+
+  private normalizeSuiteOwnership(snapshot: EvalWorkspacePrimitives): void {
+    const suiteForCase = new Map<string, string>();
+    for (const suite of snapshot.suites) {
+      for (const caseId of suite.caseIds) suiteForCase.set(caseId, suite.suiteId);
+    }
+    snapshot.cases = snapshot.cases.map((item) => ({
+      ...item,
+      suiteId: suiteForCase.get(item.caseId) ?? item.suiteId,
+    }));
+    snapshot.runs = snapshot.runs.map((run) => ({
+      ...run,
+      suiteId: run.caseIds.map((caseId) => suiteForCase.get(caseId)).find(Boolean) ?? run.suiteId,
+    }));
   }
 
   private assertRecord(value: unknown, label: string): asserts value is Record<string, unknown> {

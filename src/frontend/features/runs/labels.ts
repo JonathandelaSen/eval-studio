@@ -7,9 +7,7 @@ export const runsLabels = {
   rail: {
     workspaceTitle: "Workspace",
     noProject: "No project selected",
-    actionsTitle: "Action",
-    allActions: "All actions",
-    metricActions: "actions",
+    metricSuites: "suites",
     metricCases: "cases",
     metricRuns: "runs",
     metricReviewed: "reviewed",
@@ -34,10 +32,12 @@ export const runsLabels = {
   },
   newRun: {
     title: "New run",
-    description: "Execute the selected action with the mock provider.",
+    description: "Execute selected cases with a local provider.",
     nameLabel: "New run name",
     namePlaceholder: "Baseline sweep",
     modelLabel: "Model",
+    providerLabel: "Provider",
+    casesLabel: "Cases",
     start: "Start run",
     starting: "Running",
     caseCountSuffix: "cases will execute",
@@ -45,7 +45,7 @@ export const runsLabels = {
   runs: {
     listTitle: "Run history",
     listHint: "Newest first. Select a run to review its results.",
-    empty: "No runs for this action yet. Start one from the panel on the left.",
+    empty: "No runs for this suite yet.",
     resultsSuffix: "results",
     avgPrefix: "avg",
     noScore: "unscored",
@@ -67,6 +67,10 @@ export const runsLabels = {
     metaCreated: "Created",
     metaCases: "Cases",
     metaTemperature: "Temp",
+    retryMissing: "Retry missing cases",
+    previousCase: "Previous case",
+    nextCase: "Next case",
+    casePrefix: "Case:",
   },
   results: {
     title: "Results",
@@ -102,8 +106,8 @@ export const runsLabels = {
   },
   cases: {
     listTitle: "Case library",
-    listHint: "Reusable situations captured for this action.",
-    empty: "No cases for this action.",
+    listHint: "Executable situations owned by this suite.",
+    empty: "No cases in this suite.",
     resultsSuffix: "results",
     historyTitle: "Result history",
     historyHint: "How this case performed across runs.",
@@ -116,6 +120,8 @@ export const runsLabels = {
     nameLabel: "Case name",
     noteLabel: "Note",
     notePlaceholder: "What should a reviewer pay attention to?",
+    systemInstructionLabel: "System instruction",
+    userMessageLabel: "User message",
     edit: "Edit",
     cancel: "Cancel",
     save: "Save changes",
@@ -125,6 +131,19 @@ export const runsLabels = {
     confirmDelete: "Delete this case file from the workspace?",
     createdPrefix: "Created",
   },
+  suites: {
+    label: "Suite",
+    none: "No suites yet",
+    new: "New suite",
+    create: "Create suite",
+    name: "Name",
+    description: "Description",
+    optional: "(optional)",
+  },
+  newCase: {
+    title: "New case",
+    create: "Create case",
+  },
   errors: {
     mutationFailed: "The operation failed.",
   },
@@ -133,6 +152,6 @@ export const runsLabels = {
     noCaseSelected: "Select a case to inspect it.",
     workspaceTitle: "Nothing to review yet",
     workspaceBody:
-      "Add a project in Settings or create cases and runs from your product.",
+      "Create a suite, then add its first executable case.",
   },
 } as const;

@@ -7,10 +7,15 @@ const updateCaseSchema = z
   .object({
     name: z.string().trim().min(1).optional(),
     note: z.string().trim().min(1).nullable().optional(),
+    systemInstruction: z.string().trim().optional(),
+    userMessage: z.string().trim().min(1).optional(),
   })
   .refine(
-    (value) => value.name !== undefined || value.note !== undefined,
-    "Provide a name or note to update.",
+    (value) =>
+      value.name !== undefined ||
+      value.note !== undefined ||
+      value.userMessage !== undefined,
+    "Provide a name, note, or prompt to update.",
   );
 
 export type UpdateCaseRequest = z.infer<typeof updateCaseSchema>;

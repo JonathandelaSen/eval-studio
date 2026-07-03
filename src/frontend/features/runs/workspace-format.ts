@@ -24,38 +24,33 @@ export function formatDate(iso: string | undefined): string {
   if (!iso) return "";
   const date = new Date(iso);
   if (Number.isNaN(date.getTime())) return iso;
-  return date.toLocaleString(undefined, {
+  return `${date.toLocaleString("en-GB", {
     year: "numeric",
     month: "short",
-    day: "numeric",
+    day: "2-digit",
     hour: "2-digit",
     minute: "2-digit",
-  });
+    hour12: false,
+    timeZone: "UTC",
+  })} UTC`;
 }
 
-export function actionIds(snapshot: EvalWorkspaceResponse): string[] {
-  const ids = new Set<string>();
-  for (const testCase of snapshot.cases) ids.add(testCase.actionId);
-  for (const run of snapshot.runs) ids.add(run.actionId);
-  return [...ids].sort();
-}
-
-export function runsForAction(
+export function runsForSuite(
   snapshot: EvalWorkspaceResponse,
-  actionId: string | null,
+  suiteId: string | null,
 ): EvalRunItem[] {
-  const runs = actionId
-    ? snapshot.runs.filter((run) => run.actionId === actionId)
+  const runs = suiteId
+    ? snapshot.runs.filter((run) => run.suiteId === suiteId)
     : [...snapshot.runs];
   return runs.sort((left, right) => right.createdAt.localeCompare(left.createdAt));
 }
 
-export function casesForAction(
+export function casesForSuite(
   snapshot: EvalWorkspaceResponse,
-  actionId: string | null,
+  suiteId: string | null,
 ): EvalCaseItem[] {
-  const cases = actionId
-    ? snapshot.cases.filter((testCase) => testCase.actionId === actionId)
+  const cases = suiteId
+    ? snapshot.cases.filter((testCase) => testCase.suiteId === suiteId)
     : [...snapshot.cases];
   return cases.sort((left, right) => left.name.localeCompare(right.name));
 }

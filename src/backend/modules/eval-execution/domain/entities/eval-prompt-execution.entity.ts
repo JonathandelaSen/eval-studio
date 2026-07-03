@@ -9,6 +9,11 @@ export interface EvalPromptExecutionPrimitives {
   parsedOutput: unknown;
   usage: unknown | null;
   latencyMs: number;
+  effectiveRuntime?: {
+    model?: string;
+    modelDigest?: string;
+    systemVersion?: string;
+  };
 }
 
 export class EvalPromptExecution extends AggregateRoot {
@@ -17,6 +22,7 @@ export class EvalPromptExecution extends AggregateRoot {
     private readonly parsedOutputValue: EvalParsedOutput,
     private readonly usageValue: EvalUsageNullable,
     private readonly latencyMsValue: EvalLatencyMs,
+    private readonly effectiveRuntimeValue?: EvalPromptExecutionPrimitives["effectiveRuntime"],
   ) {
     super();
   }
@@ -29,6 +35,7 @@ export class EvalPromptExecution extends AggregateRoot {
       EvalParsedOutput.fromPrimitives(primitives.parsedOutput),
       EvalUsageNullable.fromPrimitives(primitives.usage),
       EvalLatencyMs.fromPrimitives(primitives.latencyMs),
+      primitives.effectiveRuntime,
     );
   }
 
@@ -38,6 +45,7 @@ export class EvalPromptExecution extends AggregateRoot {
       parsedOutput: this.parsedOutputValue.toPrimitives(),
       usage: this.usageValue.toPrimitives(),
       latencyMs: this.latencyMsValue.toPrimitives(),
+      ...(this.effectiveRuntimeValue ? { effectiveRuntime: this.effectiveRuntimeValue } : {}),
     };
   }
 }

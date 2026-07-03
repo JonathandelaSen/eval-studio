@@ -5,7 +5,7 @@ import { AppShell } from "./_components/app-shell";
 
 export const metadata: Metadata = {
   title: "Eval Studio",
-  description: "Local evaluation workspace for AI-backed product actions.",
+  description: "Local workspace for repeatable AI evaluation suites.",
 };
 
 export default function RootLayout({

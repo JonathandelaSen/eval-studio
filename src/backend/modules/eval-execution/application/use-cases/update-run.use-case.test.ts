@@ -7,13 +7,13 @@ import type { EvalRunRepository } from "../../domain/repositories/eval-run.repos
 const runPrimitives: EvalRunPrimitives = {
   runId: "20260701T000000Z.eval-studio-mock-mock-evaluator",
   name: "Baseline",
-  actionId: "550e8400-e29b-41d4-a716-446655440000",
+  suiteId: "550e8400-e29b-41d4-a716-446655440000",
   producer: "eval-studio",
   createdAt: "2026-07-01T00:00:00.000Z",
   caseIds: ["550e8400-e29b-41d4-a716-446655440001"],
   runtime: { provider: "mock", model: "mock-evaluator", temperature: 0 },
   notes: null,
-  suiteId: null,
+  status: "completed",
 };
 
 function repositoryWith(existing: EvalRunPrimitives | null): {

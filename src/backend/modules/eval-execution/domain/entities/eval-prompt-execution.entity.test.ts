@@ -8,9 +8,14 @@ describe("EvalPromptExecution", () => {
       parsedOutput: {},
       usage: null,
       latencyMs: 12,
+      effectiveRuntime: { model: "llama3:latest", modelDigest: "sha256:abc" },
     });
 
     expect(execution.toPrimitives().latencyMs).toBe(12);
+    expect(execution.toPrimitives().effectiveRuntime).toEqual({
+      model: "llama3:latest",
+      modelDigest: "sha256:abc",
+    });
   });
 
   it("rejects negative latency", () => {

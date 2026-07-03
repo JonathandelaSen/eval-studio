@@ -76,7 +76,7 @@ export function ResultSpotlight({
             <ValueBlock
               value={output}
               emptyLabel={runsLabels.spotlight.emptyOutput}
-              className="mt-2 font-serif text-lg leading-relaxed"
+              className="mt-2 font-sans text-sm leading-relaxed text-foreground/90"
             />
           )}
         </section>
@@ -86,7 +86,7 @@ export function ResultSpotlight({
               {runsLabels.spotlight.expectedLabel}
             </ZoneLabel>
             {expectedText ? (
-              <p className="mt-2 whitespace-pre-wrap font-serif text-lg leading-relaxed">
+              <p className="mt-2 whitespace-pre-wrap font-sans text-sm leading-relaxed text-foreground/90">
                 {expectedText}
               </p>
             ) : (

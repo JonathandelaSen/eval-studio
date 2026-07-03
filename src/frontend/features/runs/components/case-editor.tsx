@@ -20,44 +20,64 @@ export function CaseEditor({
 }) {
   const [name, setName] = React.useState(testCase.name);
   const [note, setNote] = React.useState(testCase.note ?? "");
+  const promptMessages = Array.isArray(testCase.renderedPrompt.messages)
+    ? testCase.renderedPrompt.messages as Array<Record<string, unknown>>
+    : [];
+  const [systemInstruction, setSystemInstruction] = React.useState(
+    String(promptMessages.find((item) => item.role === "system")?.content ?? ""),
+  );
+  const [userMessage, setUserMessage] = React.useState(
+    String(promptMessages.find((item) => item.role === "user")?.content ?? testCase.renderedPrompt.text ?? ""),
+  );
 
-  async function persist() {
+  async function persist(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
     const trimmedNote = note.trim();
     const updated = await mutations.updateCase(testCase.caseId, {
       name: name.trim(),
       note: trimmedNote ? trimmedNote : null,
+      systemInstruction: systemInstruction.trim(),
+      userMessage: userMessage.trim(),
     });
     if (updated) onClose();
   }
 
   return (
-    <div className="flex flex-col gap-2 rounded-md border border-primary/40 bg-primary/5 p-3">
+    <form onSubmit={persist} className="flex flex-col gap-2 rounded-md border border-primary/40 bg-primary/5 p-3">
+      <label htmlFor={`case-name-${testCase.caseId}`} className="text-xs font-medium">{runsLabels.cases.nameLabel}</label>
       <Input
-        aria-label={runsLabels.cases.nameLabel}
+        id={`case-name-${testCase.caseId}`}
+        name="name"
+        required
         value={name}
         onChange={(event) => setName(event.target.value)}
       />
+      <label htmlFor={`case-note-${testCase.caseId}`} className="text-xs font-medium">{runsLabels.cases.noteLabel} <span className="text-muted-foreground">{runsLabels.suites.optional}</span></label>
       <Textarea
-        aria-label={runsLabels.cases.noteLabel}
+        id={`case-note-${testCase.caseId}`}
+        name="note"
         placeholder={runsLabels.cases.notePlaceholder}
         value={note}
         onChange={(event) => setNote(event.target.value)}
       />
+      <label htmlFor={`case-system-${testCase.caseId}`} className="text-xs font-medium">{runsLabels.cases.systemInstructionLabel} <span className="text-muted-foreground">{runsLabels.suites.optional}</span></label>
+      <Textarea id={`case-system-${testCase.caseId}`} name="systemInstruction" value={systemInstruction} onChange={(event) => setSystemInstruction(event.target.value)} />
+      <label htmlFor={`case-user-${testCase.caseId}`} className="text-xs font-medium">{runsLabels.cases.userMessageLabel}</label>
+      <Textarea id={`case-user-${testCase.caseId}`} name="userMessage" required value={userMessage} onChange={(event) => setUserMessage(event.target.value)} />
       <div className="flex justify-end gap-2">
         <Button type="button" variant="outline" size="sm" onClick={onClose}>
           <X data-icon="inline-start" />
           {runsLabels.cases.cancel}
         </Button>
         <Button
-          type="button"
+          type="submit"
           size="sm"
-          onClick={persist}
-          disabled={mutations.busy || !name.trim()}
+          disabled={mutations.busy}
         >
           <Check data-icon="inline-start" />
           {mutations.busy ? runsLabels.cases.saving : runsLabels.cases.save}
         </Button>
       </div>
-    </div>
+    </form>
   );
 }

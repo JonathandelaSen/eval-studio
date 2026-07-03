@@ -13,7 +13,7 @@ code or start the source application.
 For a new integration, the source project normally owns:
 
 - `manifest.json`: identifies the workspace.
-- `suites/**/suite.json`: groups related cases for one product action.
+- `suites/**/suite.json`: defines a visible evaluation scope and its cases.
 - `suites/**/*.case.json`: captures the input and exact prompt for each case.
 
 That is enough for Eval Studio to discover cases and create new runs. The source
@@ -68,21 +68,17 @@ Use stable identifiers and never recycle an identifier for different data.
 
 | Identifier | Required format | Purpose |
 | --- | --- | --- |
-| `actionId` | UUID | Identifies one AI-backed product action across suites, cases, and runs. |
 | `caseId` | UUID | Identifies one reproducible case across suites, runs, results, and annotations. |
-| `suiteId` | UUID | Identifies a case collection across suite and run artifacts. |
+| `suiteId` | Non-empty string | Identifies a Suite across suite, case, and run artifacts. UUIDs are recommended for new Suites; existing stable slugs remain supported. |
 | `runId` | Non-empty string | Identifies one experiment. It is also used as a directory name when Eval Studio writes a run. |
 | `resultId` | Non-empty string | Identifies the result of one case in one run. |
 
-Although the lightweight suite and case reader accepts plain strings, `actionId`,
-`caseId`, and a run's non-null `suiteId` pass through UUID validation during
-execution/import. Using UUIDs from the beginning avoids a workspace that can be
-displayed but cannot be executed.
+`caseId` passes through UUID validation during execution/import. New Suites use
+UUIDs, while existing non-empty slug-style Suite IDs remain supported.
 
 Recommended UUID forms:
 
 ```text
-actionId: 11111111-1111-4111-8111-111111111111
 caseId:   22222222-2222-4222-8222-222222222222
 suiteId:  33333333-3333-4333-8333-333333333333
 ```
@@ -155,14 +151,13 @@ settings.
 
 ## 2. Suite
 
-A suite groups cases that evaluate the same product action. Create one
+A suite is a visible evaluation scope that owns its cases and runs. Create one
 `suite.json` for each suite under `evals/suites/`.
 
 ```json
 {
   "schemaVersion": "1",
   "suiteId": "33333333-3333-4333-8333-333333333333",
-  "actionId": "11111111-1111-4111-8111-111111111111",
   "name": "Customer-support answer quality",
   "description": "Cases that check grounded answers to customer questions.",
   "caseIds": [
@@ -174,11 +169,10 @@ A suite groups cases that evaluate the same product action. Create one
 | Field | Required | Type | Meaning |
 | --- | --- | --- | --- |
 | `schemaVersion` | Recommended | string | Use `"1"`. |
-| `suiteId` | Yes | UUID string | Stable suite identifier, reusable from imported runs. |
-| `actionId` | Yes | UUID string | Product action evaluated by every case in the suite. |
+| `suiteId` | Yes | Non-empty string | Stable Suite identifier; UUID recommended for new Suites. |
 | `name` | Yes | string | Human-readable suite name. |
 | `description` | No | string | Scope, quality bar, or intended use of the suite. |
-| `caseIds` | Yes | array of strings | Exact IDs of the cases in the suite. Use at least one case. |
+| `caseIds` | Yes | array of strings | Exact IDs of the cases in the suite. It may be empty. |
 
 Keep `caseIds` synchronized with the case files. Eval Studio does not infer suite
 membership from directories and does not verify that every referenced case
@@ -186,7 +180,7 @@ exists.
 
 ## 3. Case
 
-A case is a reproducible situation for one AI-backed action. It should contain
+A case is a reproducible, executable situation owned by exactly one suite. It should contain
 enough information to inspect and replay the prompt without starting the source
 application.
 
@@ -197,7 +191,7 @@ Create a file ending in `.case.json`, for example
 {
   "schemaVersion": "1",
   "caseId": "22222222-2222-4222-8222-222222222222",
-  "actionId": "11111111-1111-4111-8111-111111111111",
+  "suiteId": "33333333-3333-4333-8333-333333333333",
   "name": "Refund request outside the refund window",
   "note": "The answer must explain the policy without inventing an exception.",
   "createdAt": "2026-07-03T09:15:00.000Z",
@@ -270,7 +264,7 @@ Create a file ending in `.case.json`, for example
 | Field | Type | Meaning |
 | --- | --- | --- |
 | `caseId` | UUID string | Stable identity of the case. |
-| `actionId` | UUID string | Must match the suite and the action used for runs. |
+| `suiteId` | Non-empty string | Identifies the Case's sole owning Suite. |
 | `name` | string | Short description visible to reviewers. |
 | `createdAt` | ISO 8601 string recommended | When the case was captured or authored. |
 | `renderedPrompt` | object | The exact prompt that can be inspected or replayed. |
@@ -295,7 +289,7 @@ necessary for people and future providers to interpret the prompt reliably.
 | `source` | object | Traceability back to the source app, route, or domain entities. |
 
 `input`, `promptTemplate`, `promptVariables`, `expectedOutput`, and `source` are
-open JSON objects. Define them consistently within a product action. The most
+open JSON objects. Define them consistently within a suite. The most
 important distinction is:
 
 - `input` is the original domain/business data.
@@ -319,7 +313,7 @@ example `evals/runs/2026-07-03T100000Z.eval-studio-mock/metadata.run.json`.
   "schemaVersion": "1",
   "runId": "2026-07-03T100000Z.eval-studio-mock-mock-evaluator",
   "name": "Customer support baseline",
-  "actionId": "11111111-1111-4111-8111-111111111111",
+  "suiteId": "33333333-3333-4333-8333-333333333333",
   "producer": "eval-studio",
   "createdAt": "2026-07-03T10:00:00.000Z",
   "caseIds": [
@@ -331,7 +325,7 @@ example `evals/runs/2026-07-03T100000Z.eval-studio-mock/metadata.run.json`.
     "temperature": 0
   },
   "notes": "Initial deterministic baseline.",
-  "suiteId": "33333333-3333-4333-8333-333333333333"
+  "status": "completed"
 }
 ```
 
@@ -339,13 +333,13 @@ example `evals/runs/2026-07-03T100000Z.eval-studio-mock/metadata.run.json`.
 | --- | --- | --- |
 | `runId` | Yes | Non-empty string, unique in the workspace. |
 | `name` | Yes | Non-empty string. |
-| `actionId` | Yes | UUID string matching the evaluated cases. |
 | `producer` | Yes | Currently must be exactly `"eval-studio"`. |
 | `createdAt` | Yes | Valid date string; ISO 8601 UTC is recommended. |
 | `caseIds` | Yes | Non-empty array of UUID strings. |
 | `runtime` | Yes for a configured run | Runtime object or `null`. |
 | `notes` | No | String or `null`. Missing/blank values normalize to `null`. |
-| `suiteId` | No | UUID string or `null`. Missing/blank values normalize to `null`. |
+| `suiteId` | Yes | Non-empty string for the Suite that owns the Run. |
+| `status` | Yes | `queued`, `running`, `completed`, `completed_with_failures`, or `interrupted`. |
 | `schemaVersion` | Recommended | String `"1"`; ignored when the run is normalized. |
 
 Runtime fields:
@@ -522,8 +516,8 @@ Before connecting or refreshing the workspace, verify all of the following:
 - `evals/manifest.json` exists and contains `workspaceName` and `createdAt`.
 - Every suite file is named exactly `suite.json`.
 - Every case, run, result, and annotation has the required suffix.
-- Every `suiteId`, `actionId`, and `caseId` is a UUID.
-- A suite's `actionId` matches all its cases.
+- Every `caseId` is a UUID; every `suiteId` is stable and non-empty.
+- Every case belongs to exactly one suite.
 - Every `caseId` in a suite has a corresponding case file.
 - Every case contains the exact final `renderedPrompt` and a non-empty `format`.
 - Every run has at least one case and uses only `mock`, `openai`, `ollama`, or `apple`.
@@ -553,7 +547,7 @@ Common causes of missing or invalid data:
 | Suite or case does not appear | Confirm it is under `suites/` and has the exact required file name/suffix. |
 | Run does not appear | Confirm its file ends in `.run.json`; `run.json` alone is not discovered by the current reader. |
 | Result or annotation does not appear | Confirm it is under the correct search root and has the correct suffix. |
-| Creating a run fails with an ID error | Replace slug-style `actionId` and `caseId` values with UUIDs everywhere. |
+| Creating a run fails with an ID error | Ensure every `caseId` is a UUID and every `suiteId` is non-empty and consistent. |
 | Runtime is rejected | Use `mock`, `openai`, `ollama`, or `apple`; use a non-empty model and temperature from `0` to `2`. |
 | Imported run/result is rejected | Use `producer: "eval-studio"` and verify all required IDs and timestamps. |
 | Data appears disconnected | Compare referenced IDs character-for-character; paths do not create relationships. |

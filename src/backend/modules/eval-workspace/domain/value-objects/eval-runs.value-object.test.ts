@@ -11,13 +11,13 @@ describe("EvalRuns", () => {
       {
         runId: "r1",
         name: "Run 1",
-        actionId: "a1",
+        suiteId: "s1",
         producer: "user",
         createdAt: "2026-07-03T00:00:00Z",
         caseIds: ["c1"],
         runtime: null,
         notes: null,
-        suiteId: null,
+        status: "completed" as const,
       },
     ];
     expect(EvalRuns.fromPrimitives(runs).toPrimitives()).toEqual(runs);

@@ -1,12 +1,12 @@
 import { FolderOpen } from "lucide-react";
 import type { EvalWorkspaceResponse } from "@/app/api/workspace/responses";
 import { runsLabels } from "../labels";
-import { actionIds, reviewedShare } from "../workspace-format";
+import { reviewedShare } from "../workspace-format";
 
 export function WorkspaceStrip({ snapshot }: { snapshot: EvalWorkspaceResponse }) {
   const reviewed = reviewedShare(snapshot);
   const counters = [
-    { value: actionIds(snapshot).length, label: runsLabels.rail.metricActions },
+    { value: snapshot.suites.length, label: runsLabels.rail.metricSuites },
     { value: snapshot.cases.length, label: runsLabels.rail.metricCases },
     { value: snapshot.runs.length, label: runsLabels.rail.metricRuns },
   ];

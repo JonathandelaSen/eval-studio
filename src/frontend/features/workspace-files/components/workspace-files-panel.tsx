@@ -27,7 +27,7 @@ export function WorkspaceFilesPanel({ active }: { active: boolean }) {
           <p className="font-mono text-[0.68rem] uppercase tracking-[0.18em] text-primary">
             {workspaceFilesLabels.eyebrow}
           </p>
-          <h2 className="mt-1 font-serif text-2xl tracking-tight">
+          <h2 className="mt-1 font-sans text-xl font-bold tracking-tight text-foreground/90">
             {workspaceFilesLabels.title}
           </h2>
           <p className="mt-1 text-sm text-muted-foreground">
@@ -104,7 +104,7 @@ export function WorkspaceFilesPanel({ active }: { active: boolean }) {
         ) : (
           <div className="flex min-h-[420px] flex-col items-center justify-center rounded-lg border border-dashed bg-card/40 px-6 text-center">
             <FileJson2 aria-hidden="true" className="size-8 text-muted-foreground/60" />
-            <h3 className="mt-3 font-serif text-xl">
+            <h3 className="mt-3 font-sans font-bold text-base text-foreground/90">
               {workspaceFilesLabels.noSelectionTitle}
             </h3>
             <p className="mt-1 max-w-sm text-sm text-muted-foreground">

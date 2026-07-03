@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Pencil, Trash2, ChevronLeft, ChevronRight, Zap, CheckCheck } from "lucide-react";
+import { Pencil, Trash2, ChevronLeft, ChevronRight, Zap, CheckCheck, RotateCcw } from "lucide-react";
 import type { EvalWorkspaceResponse } from "@/app/api/workspace/responses";
 import { Button } from "@/frontend/components/ui/button";
 import type { WorkspaceMutations } from "../hooks/use-workspace-mutations";
@@ -61,9 +61,11 @@ export function RunDetail({
   return (
     <div className="flex min-w-0 flex-col gap-3">
       <header className="rounded-lg border bg-card px-5 py-4 flex flex-col gap-3">
-        {/* Row 1: Metadata & Actions */}
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex flex-wrap items-center gap-x-3.5 gap-y-2">
+            <span className="rounded-full border px-2 py-1 font-mono text-[10px] uppercase tracking-wide text-muted-foreground">
+              {run.status.replaceAll("_", " ")}
+            </span>
             <RuntimeChip runtime={run.runtime} fallback={run.producer} />
             <ScoreDots score={average} labelWhenEmpty={runsLabels.runs.noScore} />
             <span className="font-mono text-[0.68rem] text-muted-foreground select-none">
@@ -71,6 +73,11 @@ export function RunDetail({
             </span>
           </div>
           <div className="flex shrink-0 gap-1.5">
+            {run.status === "interrupted" ? (
+              <Button type="button" variant="outline" size="sm" onClick={() => mutations.retryRun(run.runId)} disabled={mutations.busy}>
+                <RotateCcw className="size-3" /> {runsLabels.runDetail.retryMissing}
+              </Button>
+            ) : null}
             <Button
               type="button"
               variant="outline"
@@ -80,7 +87,7 @@ export function RunDetail({
               onClick={() => setEditing((value) => !value)}
             >
               <Pencil className="size-3" />
-              <span>Edit</span>
+              <span>{runsLabels.runDetail.edit}</span>
             </Button>
             <Button
               type="button"
@@ -92,23 +99,20 @@ export function RunDetail({
               disabled={mutations.busy}
             >
               <Trash2 className="size-3" />
-              <span>Delete</span>
+              <span>{runsLabels.runDetail.delete}</span>
             </Button>
           </div>
         </div>
 
-        {/* Row 2: Run Name */}
         <div className="border-t border-border/40 pt-2.5">
           <h2 className="min-w-0 truncate font-sans text-base font-bold tracking-tight text-foreground/90">
             {run.name}
           </h2>
         </div>
 
-        {/* Row 3: Selected Result Case & Navigation */}
         {selectedResult && currentIndex !== -1 && (
           <div className="border-t border-border/40 pt-2.5 flex flex-wrap items-center justify-between gap-3 text-xs text-muted-foreground">
             <div className="flex flex-wrap items-center gap-3">
-              {/* Pagination Controls */}
               {results.length > 1 && (
                 <div className="flex items-center gap-1 bg-muted/30 rounded-md border border-border/45 p-0.5 select-none">
                   <button
@@ -116,7 +120,7 @@ export function RunDetail({
                     disabled={results.length <= 1}
                     onClick={() => onSelectResult(results[(currentIndex - 1 + results.length) % results.length].resultId)}
                     className="p-0.5 rounded hover:bg-muted text-muted-foreground hover:text-foreground disabled:opacity-30 disabled:hover:bg-transparent transition-colors"
-                    title="Previous case"
+                    title={runsLabels.runDetail.previousCase}
                   >
                     <ChevronLeft className="size-3.5" />
                   </button>
@@ -128,7 +132,7 @@ export function RunDetail({
                     disabled={results.length <= 1}
                     onClick={() => onSelectResult(results[(currentIndex + 1) % results.length].resultId)}
                     className="p-0.5 rounded hover:bg-muted text-muted-foreground hover:text-foreground disabled:opacity-30 disabled:hover:bg-transparent transition-colors"
-                    title="Next case"
+                    title={runsLabels.runDetail.nextCase}
                   >
                     <ChevronRight className="size-3.5" />
                   </button>
@@ -136,9 +140,8 @@ export function RunDetail({
               )}
               {results.length > 1 && <span className="text-border">|</span>}
 
-              {/* Case Link */}
               <div className="flex items-center gap-1">
-                <span className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground/60 select-none">Case:</span>
+                <span className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground/60 select-none">{runsLabels.runDetail.casePrefix}</span>
                 {onSelectCase ? (
                   <button
                     type="button"
@@ -153,7 +156,6 @@ export function RunDetail({
               </div>
               <span className="text-border">|</span>
 
-              {/* Latency */}
               <div className="flex items-center gap-1.5 font-mono text-[11px] select-none">
                 <Zap className="size-3.5 text-muted-foreground/60" />
                 <span>{formatLatency(selectedResult.latencyMs)}</span>

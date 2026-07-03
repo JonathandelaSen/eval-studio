@@ -4,7 +4,7 @@ import type { EvalCasePrimitives } from "./eval-workspace.entity";
 
 const casePrimitives: EvalCasePrimitives = {
   caseId: "550e8400-e29b-41d4-a716-446655440001",
-  actionId: "550e8400-e29b-41d4-a716-446655440000",
+  suiteId: "550e8400-e29b-41d4-a716-446655440000",
   name: "Summarize invoice",
   note: "Focus on totals",
   createdAt: "2026-07-01T00:00:00.000Z",
@@ -18,6 +18,7 @@ describe("EvalCase", () => {
 
     expect(evalCase.id.toPrimitives()).toBe(casePrimitives.caseId);
     expect(evalCase.toPrimitives()).toEqual(casePrimitives);
+    expect(evalCase.suiteId.toPrimitives()).toBe(casePrimitives.suiteId);
   });
 
   it("trims the case name", () => {

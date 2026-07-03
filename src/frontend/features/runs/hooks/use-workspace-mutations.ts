@@ -3,12 +3,17 @@ import { useRouter } from "next/navigation";
 import { ApiClientError } from "@/frontend/api/read-json-response";
 import {
   createRun,
+  createSuite,
+  createCase,
   deleteCase,
   deleteRun,
   saveAnnotation,
   updateCase,
   updateRun,
+  retryRun,
   type CreateRunPayload,
+  type CreateSuitePayload,
+  type CreateCasePayload,
   type SaveAnnotationPayload,
   type UpdateCasePayload,
   type UpdateRunPayload,
@@ -46,9 +51,12 @@ export function useWorkspaceMutations() {
     busy,
     error,
     createRun: (payload: CreateRunPayload) => perform(() => createRun(payload)),
+    createSuite: (payload: CreateSuitePayload) => perform(() => createSuite(payload)),
+    createCase: (payload: CreateCasePayload) => perform(() => createCase(payload)),
     updateRun: (runId: string, payload: UpdateRunPayload) =>
       perform(() => updateRun(runId, payload)),
     deleteRun: (runId: string) => perform(() => deleteRun(runId)),
+    retryRun: (runId: string) => perform(() => retryRun(runId)),
     updateCase: (caseId: string, payload: UpdateCasePayload) =>
       perform(() => updateCase(caseId, payload)),
     deleteCase: (caseId: string) => perform(() => deleteCase(caseId)),

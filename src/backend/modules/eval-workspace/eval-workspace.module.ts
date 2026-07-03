@@ -10,19 +10,25 @@ import { ListWorkspaceJsonFilesUseCase } from "./application/use-cases/list-work
 import { GetWorkspaceJsonFileUseCase } from "./application/use-cases/get-workspace-json-file.use-case";
 import { SaveWorkspaceJsonFileUseCase } from "./application/use-cases/save-workspace-json-file.use-case";
 import { FilesystemWorkspaceJsonFileRepository } from "./infrastructure/filesystem-workspace-json-file.repository";
+import { FilesystemEvalSuiteRepository } from "./infrastructure/filesystem-eval-suite.repository";
+import { CreateSuiteUseCase } from "./application/use-cases/create-suite.use-case";
+import { CreateCaseUseCase } from "./application/use-cases/create-case.use-case";
 
 export function createEvalWorkspaceModule() {
   const workspaceRepo = new FilesystemEvalWorkspaceRepository();
   const annotationRepo = new FilesystemEvalAnnotationRepository();
   const caseRepository = new FilesystemEvalCaseRepository();
+  const suiteRepository = new FilesystemEvalSuiteRepository();
   const workspaceJsonFileRepository =
     new FilesystemWorkspaceJsonFileRepository();
 
   return {
     getEvalWorkspace: new GetEvalWorkspaceUseCase(workspaceRepo),
+    createSuite: new CreateSuiteUseCase({ suiteRepository }),
+    createCase: new CreateCaseUseCase({ caseRepository, suiteRepository }),
     saveAnnotation: new SaveAnnotationUseCase(annotationRepo),
     updateCase: new UpdateCaseUseCase({ caseRepository }),
-    deleteCase: new DeleteCaseUseCase({ caseRepository }),
+    deleteCase: new DeleteCaseUseCase({ caseRepository, suiteRepository }),
     deleteRunAnnotations: new DeleteRunAnnotationsUseCase(annotationRepo),
     listWorkspaceJsonFiles: new ListWorkspaceJsonFilesUseCase({
       workspaceJsonFileRepository,

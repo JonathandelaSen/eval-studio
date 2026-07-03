@@ -31,7 +31,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                 <FlaskConical className="size-4" aria-hidden="true" />
               </span>
               <span>
-                <span className="block font-serif text-lg leading-none tracking-tight">
+                <span className="block font-sans font-bold text-lg leading-none tracking-tight text-white/90">
                   Eval Studio
                 </span>
                 <span className="mt-1 block text-[0.65rem] uppercase tracking-[0.22em] text-emerald-100/50">

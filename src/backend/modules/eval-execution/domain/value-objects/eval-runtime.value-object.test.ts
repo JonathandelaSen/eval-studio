@@ -19,6 +19,7 @@ describe("EvalRuntime", () => {
       provider: "openai",
       model: "gpt-5 mini",
       temperature: 1.5,
+      metadata: null,
     });
   });
 
@@ -27,6 +28,7 @@ describe("EvalRuntime", () => {
       provider: "ollama",
       model: "llama3",
       temperature: null,
+      metadata: null,
     });
 
     expect(runtime.providerValue.toPrimitives()).toBe("ollama");
@@ -37,6 +39,7 @@ describe("EvalRuntime", () => {
       provider: "ollama",
       model: "llama3",
       temperature: null,
+      metadata: null,
     });
   });
 });

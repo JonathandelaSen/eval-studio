@@ -4,13 +4,13 @@ import type { EvalRuntimePrimitives } from "../value-objects/eval-runtime.value-
 export interface EvalRunCreatedEventPrimitives {
   runId: string;
   name: string;
-  actionId: string;
+  suiteId: string;
   producer: string;
   createdAt: string;
   caseIds: string[];
   runtime?: EvalRuntimePrimitives | null;
   notes?: string | null;
-  suiteId?: string | null;
+  status: string;
 }
 
 export class EvalRunCreatedEvent implements DomainEvent<EvalRunCreatedEventPrimitives> {
@@ -23,4 +23,3 @@ export class EvalRunCreatedEvent implements DomainEvent<EvalRunCreatedEventPrimi
     return this.attributes;
   }
 }
-

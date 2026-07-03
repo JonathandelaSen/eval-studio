@@ -50,7 +50,7 @@ export function SettingsProjects({
     <section aria-labelledby="projects-heading">
       <div className="flex flex-wrap items-end justify-between gap-4 border-b pb-4">
         <div>
-          <h2 id="projects-heading" className="font-serif text-2xl">
+          <h2 id="projects-heading" className="font-sans text-xl font-bold tracking-tight text-foreground/90">
             Projects
           </h2>
         </div>
@@ -111,7 +111,7 @@ export function SettingsProjects({
             <span className="mx-auto grid size-12 place-items-center rounded-full border bg-card text-muted-foreground">
               <Folder className="size-5" aria-hidden="true" />
             </span>
-            <h3 className="mt-4 font-serif text-lg">No projects connected</h3>
+            <h3 className="mt-4 font-sans font-bold text-base text-foreground/90">No projects connected</h3>
             <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
               Choose the local folder where a project keeps its manifest, suites, runs, and annotations.
             </p>
@@ -128,7 +128,7 @@ export function SettingsProjects({
         <div className="flex items-start justify-between gap-4 border-b px-5 py-4">
           <div>
             <p className="font-mono text-[0.62rem] uppercase tracking-[0.18em] text-primary">Directory browser</p>
-            <h2 id="directory-dialog-title" className="mt-1 font-serif text-xl">Choose a project folder</h2>
+            <h2 id="directory-dialog-title" className="mt-1 font-sans font-bold text-lg text-foreground/90">Choose a project folder</h2>
           </div>
           <Button type="button" variant="ghost" size="icon" aria-label="Close directory browser" onClick={() => dialogRef.current?.close()}>
             <X className="size-4" aria-hidden="true" />

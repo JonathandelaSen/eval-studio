@@ -3,7 +3,7 @@ import type { ApiErrorDescriptor } from "@/app/api/_shared/api-responses";
 
 export const createRunRequestSchema = z.object({
   name: z.string().min(1),
-  actionId: z.string().min(1),
+  suiteId: z.string().trim().min(1),
   caseIds: z.array(z.string()).min(1),
   provider: z.string().min(1),
   model: z.string().min(1),

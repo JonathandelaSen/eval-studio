@@ -5,6 +5,7 @@ import type {
 } from "@/backend/modules/eval-execution";
 import type { EvalAnnotationPrimitives } from "./eval-annotation.entity";
 import type { EvalCasePrimitives } from "./eval-case.entity";
+import type { EvalSuitePrimitives } from "./eval-suite.entity";
 import { WorkspaceRootNullable } from "../value-objects/workspace-root-nullable.value-object";
 import { EvalManifestNullable } from "../value-objects/eval-manifest-nullable.value-object";
 import { EvalSuites } from "../value-objects/eval-suites.value-object";
@@ -31,15 +32,8 @@ export interface EvalManifestPrimitives extends JsonRecord {
   createdAt: string;
 }
 
-export interface EvalSuitePrimitives extends JsonRecord {
-  suiteId: string;
-  actionId: string;
-  name: string;
-  description?: string;
-  caseIds: string[];
-}
-
 export type { EvalCasePrimitives } from "./eval-case.entity";
+export type { EvalSuitePrimitives } from "./eval-suite.entity";
 
 export type WorkspaceDiagnostic = {
   path: string;

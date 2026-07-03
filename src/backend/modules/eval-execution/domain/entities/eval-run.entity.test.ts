@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
 import { Timestamp } from "@/backend/modules/shared";
-import { ActionId } from "../value-objects/action-id.value-object";
 import { CaseIds } from "../value-objects/case-ids.value-object";
 import { Producer } from "../value-objects/producer.value-object";
 import { EvalRunId } from "../value-objects/eval-run-id.value-object";
@@ -9,14 +8,14 @@ import { EvalModel } from "../value-objects/eval-model.value-object";
 import { RunName } from "../value-objects/run-name.value-object";
 import { EvalRuntimeNullable } from "../value-objects/eval-runtime-nullable.value-object";
 import { RunNotesNullable } from "../value-objects/run-notes-nullable.value-object";
-import { SuiteIdNullable } from "../value-objects/suite-id-nullable.value-object";
+import { SuiteId } from "../value-objects/suite-id.value-object";
 import { EvalRun } from "./eval-run.entity";
 
 describe("EvalRun", () => {
   it("creates a run with domain defaults", () => {
     const createdAt = Timestamp.fromPrimitives("2026-06-22T10:15:30.000Z");
     const producer = Producer.evalStudio();
-    const actionUuid = "987f6543-e21b-32d1-b654-246614174111";
+    const suiteUuid = "987f6543-e21b-32d1-b654-246614174111";
     const caseUuid = "550e8400-e29b-41d4-a716-446655440000";
     const evalRun = EvalRun.create({
       id: EvalRunId.create({
@@ -26,7 +25,7 @@ describe("EvalRun", () => {
         model: EvalModel.fromPrimitives("gpt-5 mini"),
       }),
       name: RunName.fromPrimitives("Run 1"),
-      actionId: ActionId.fromPrimitives(actionUuid),
+      suiteId: SuiteId.fromPrimitives(suiteUuid),
       producer,
       createdAt,
       caseIds: CaseIds.fromPrimitives([caseUuid]),
@@ -36,12 +35,12 @@ describe("EvalRun", () => {
         temperature: null,
       }),
       notes: RunNotesNullable.empty(),
-      suiteId: SuiteIdNullable.empty(),
     });
 
     expect(evalRun.toPrimitives()).toMatchObject({
       name: "Run 1",
-      actionId: actionUuid,
+      suiteId: suiteUuid,
+      status: "queued",
       producer: "eval-studio",
       caseIds: [caseUuid],
       runtime: {
@@ -64,13 +63,12 @@ describe("EvalRun", () => {
         model: EvalModel.fromPrimitives("gpt-5 mini"),
       }),
       name: RunName.fromPrimitives("Run 1"),
-      actionId: ActionId.fromPrimitives("987f6543-e21b-32d1-b654-246614174111"),
+      suiteId: SuiteId.fromPrimitives("987f6543-e21b-32d1-b654-246614174111"),
       producer,
       createdAt,
       caseIds: CaseIds.fromPrimitives([caseUuid]),
       runtime: EvalRuntimeNullable.empty(),
       notes: RunNotesNullable.empty(),
-      suiteId: SuiteIdNullable.empty(),
     });
 
     const events = evalRun.pullDomainEvents();
@@ -81,22 +79,41 @@ describe("EvalRun", () => {
   });
 
   it("hydrates identities and round-trips primitives", () => {
-    const actionUuid = "987f6543-e21b-32d1-b654-246614174111";
+    const suiteUuid = "987f6543-e21b-32d1-b654-246614174111";
     const caseUuid = "550e8400-e29b-41d4-a716-446655440000";
     const run = EvalRun.fromPrimitives({
       runId: "run-1",
       name: "Run 1",
-      actionId: actionUuid,
+      suiteId: suiteUuid,
       producer: "eval-studio",
       createdAt: "2026-06-22T00:00:00.000Z",
       caseIds: [caseUuid],
       runtime: null,
       notes: null,
-      suiteId: null,
+      status: "running",
     });
 
     expect(run.id.toPrimitives()).toBe("run-1");
-    expect(run.actionId.toPrimitives()).toBe(actionUuid);
+    expect(run.suiteId.toPrimitives()).toBe(suiteUuid);
     expect(run.toPrimitives().caseIds).toEqual([caseUuid]);
+  });
+
+  it("moves through the persisted run lifecycle", () => {
+    const run = EvalRun.fromPrimitives({
+      runId: "run-1",
+      name: "Run 1",
+      suiteId: "987f6543-e21b-32d1-b654-246614174111",
+      producer: "eval-studio",
+      createdAt: "2026-06-22T00:00:00.000Z",
+      caseIds: ["550e8400-e29b-41d4-a716-446655440000"],
+      runtime: null,
+      notes: null,
+      status: "queued",
+    });
+
+    run.markRunning();
+    expect(run.toPrimitives().status).toBe("running");
+    run.markCompleted(true);
+    expect(run.toPrimitives().status).toBe("completed_with_failures");
   });
 });
