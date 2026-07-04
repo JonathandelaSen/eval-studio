@@ -33,9 +33,6 @@ export function RunCaseFilter({
           </option>
         ))}
       </select>
-      <p className="mt-2 text-xs text-muted-foreground">
-        {runsLabels.runs.caseHint}
-      </p>
     </div>
   );
 }

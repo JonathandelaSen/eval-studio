@@ -39,7 +39,7 @@ export function ProjectSwitcher({ snapshot }: { snapshot: ProjectRegistryRespons
 
   return (
     <div>
-      <label htmlFor="active-project" className="mb-1 block text-[0.65rem] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+      <label htmlFor="active-project" className="sr-only">
         Active project
       </label>
       <div className="relative">

@@ -5,7 +5,8 @@
       "name": "eval-studio-demo",
       "runtimeExecutable": "env",
       "runtimeArgs": [
-        "EVAL_STUDIO_SETTINGS_FILE=/private/tmp/claude-501/-Users-jon-DEV-repos-eval-studio/0338d922-7912-4193-b3cb-b44e5c312636/scratchpad/settings.json",
+        "PATH=/Users/jon/.nvm/versions/node/v22.23.1/bin:/usr/bin:/bin",
+        "EVAL_STUDIO_SETTINGS_FILE=/private/tmp/claude-501/-Users-jon-DEV-repos-eval-studio/52e5da96-aadd-484f-99a7-dc932a2fa588/scratchpad/settings.json",
         "npm",
         "run",
         "dev"

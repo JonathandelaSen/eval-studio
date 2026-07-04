@@ -15,7 +15,7 @@ import { casesForSuite, runsForCase, runsForSuite } from "../workspace-format";
 import { CaseDetail } from "./case-detail";
 import { CaseList } from "./case-list";
 import { DiagnosticsPanel } from "./diagnostics-panel";
-import { NewRunPanel } from "./new-run-panel";
+import { NewRunSheet } from "./new-run-sheet";
 import { RunDetail } from "./run-detail";
 import { RunCaseFilter } from "./run-case-filter";
 import { RunList } from "./run-list";
@@ -101,7 +101,7 @@ export function RunsWorkspace({ snapshot }: { snapshot: EvalWorkspaceResponse })
                   selectedRunId={activeRun?.runId ?? null}
                   onSelectRun={selectRun}
                 />
-                {activeCase ? <NewRunPanel testCase={activeCase} suiteId={suiteId} mutations={mutations} /> : <NewCasePanel suiteId={suiteId} mutations={mutations} />}
+                {activeCase ? <NewRunSheet testCase={activeCase} suiteId={suiteId} mutations={mutations} /> : <NewCasePanel suiteId={suiteId} mutations={mutations} />}
               </div>
               {activeRun ? (
                 <RunDetail

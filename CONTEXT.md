@@ -16,7 +16,7 @@ A bounded context is named for the capability it covers, not for a single entity
 
 **Case**:
 A reproducible, executable evaluation situation.
-_Avoid_: Sample, fixture, review item
+_Avoid_: Sample, fixture, review item, scenario
 
 **Suite**:
 A named evaluation scope that owns its **Cases**.
@@ -105,6 +105,8 @@ _Avoid_: Delta, rating relative to baseline
 > **Domain expert:** "No. An **Annotation** starts with a human score; comments and tags are optional context."
 > **Dev:** "Is the **Score** relative to the baseline?"
 > **Domain expert:** "No. The **Score** is absolute; relative improvement is derived by comparing scores."
+> **Dev:** "Can one **Run** execute against several models?"
+> **Domain expert:** "No. A **Run** requests one **Runtime**; launching the same **Case** on several models creates one **Run** per **Runtime**."
 
 ## Flagged ambiguities
 
@@ -125,3 +127,5 @@ _Avoid_: Delta, rating relative to baseline
 - "annotation" is attached to a **Result**, not directly to a **Case** or **Run**.
 - "annotation" requires a human score; comment-only or tag-only notes are not **Annotations** in the MVP.
 - "score" means absolute result quality, not improvement relative to another **Run**.
+- "scenario" was used to mean **Case**; it is not a domain term.
+- A multi-model launch is N independent **Runs** (one per **Runtime**); there is no batch or sweep entity, and the Runs carry no memory of being launched together.

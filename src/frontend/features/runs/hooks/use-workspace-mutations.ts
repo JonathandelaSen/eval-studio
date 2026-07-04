@@ -53,6 +53,12 @@ export function useWorkspaceMutations() {
     busy,
     error,
     createRun: (payload: CreateRunPayload) => perform(() => createRun(payload)),
+    createRuns: (payloads: CreateRunPayload[]) =>
+      perform(async () => {
+        const responses = [];
+        for (const payload of payloads) responses.push(await createRun(payload));
+        return responses;
+      }),
     createSuite: (payload: CreateSuitePayload) => perform(() => createSuite(payload)),
     deleteSuite: (suiteId: string) => perform(() => deleteSuite(suiteId)),
     createCase: (payload: CreateCasePayload) => perform(() => createCase(payload)),
