@@ -3,6 +3,7 @@ import { EvalProvider } from "../value-objects/eval-provider.value-object";
 import { EvalModel } from "../value-objects/eval-model.value-object";
 import { EvalTemperature } from "../value-objects/eval-temperature.value-object";
 import { RenderedPrompt } from "../value-objects/rendered-prompt.value-object";
+import { EvalProviderRequest } from "../value-objects/eval-provider-request.value-object";
 
 export interface EvalProviderExecutionInput {
   provider: EvalProvider;
@@ -12,5 +13,9 @@ export interface EvalProviderExecutionInput {
 }
 
 export interface EvalProviderRepository {
-  execute(input: EvalProviderExecutionInput): Promise<EvalPromptExecution>;
+  prepare(input: EvalProviderExecutionInput): EvalProviderRequest;
+  execute(
+    input: EvalProviderExecutionInput,
+    request?: EvalProviderRequest,
+  ): Promise<EvalPromptExecution>;
 }

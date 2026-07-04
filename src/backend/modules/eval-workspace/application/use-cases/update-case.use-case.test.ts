@@ -83,17 +83,30 @@ describe("UpdateCaseUseCase", () => {
     });
   });
 
-  it("updates input and expected output", async () => {
+  it("stores an updated user-only prompt as text", async () => {
+    const updated = await useCase().execute({
+      workspaceRoot,
+      caseId,
+      userMessage: "Summarize this invoice.",
+    });
+
+    expect(updated.toPrimitives().renderedPrompt).toEqual({
+      format: "text",
+      text: "Summarize this invoice.",
+    });
+  });
+
+  it("updates legacy input and free-text expected output", async () => {
     const updated = await useCase().execute({
       workspaceRoot,
       caseId,
       input: { invoiceId: "inv-2", includeTax: true },
-      expectedOutput: { currency: "USD", total: 125 },
+      expectedOutput: "The total is USD 125.",
     });
 
     expect(updated.toPrimitives()).toMatchObject({
       input: { invoiceId: "inv-2", includeTax: true },
-      expectedOutput: { currency: "USD", total: 125 },
+      expectedOutput: "The total is USD 125.",
     });
   });
 

@@ -3,11 +3,12 @@ import { InMemoryEventBus, NoOpTelemetry } from "@/backend/modules/shared";
 import { EvalRun } from "../../domain/entities/eval-run.entity";
 import { EvalPromptExecution } from "../../domain/entities/eval-prompt-execution.entity";
 import { ExecuteRunUseCase } from "./execute-run.use-case";
+import { EvalProviderRequest } from "../../domain/value-objects/eval-provider-request.value-object";
 
 describe("ExecuteRunUseCase", () => {
   it("continues after a failed case and completes with failures", async () => {
     const savedRuns: string[] = [];
-    const savedResults: string[] = [];
+    const savedResults: Array<Record<string, unknown>> = [];
     const run = EvalRun.fromPrimitives({
       runId: "run-1",
       name: "Local run",
@@ -25,6 +26,15 @@ describe("ExecuteRunUseCase", () => {
     let attempts = 0;
     const useCase = new ExecuteRunUseCase({
       providerRepository: {
+        prepare: (input) => EvalProviderRequest.fromPrimitives({
+          transport: "in-memory",
+          target: "mock",
+          contentType: "application/json",
+          body: {
+            model: input.model.toPrimitives(),
+            prompt: input.renderedPrompt.toPrimitives(),
+          },
+        }),
         execute: async () => {
           attempts += 1;
           if (attempts === 1) throw new Error("boom");
@@ -44,7 +54,7 @@ describe("ExecuteRunUseCase", () => {
       } as never,
       resultRepository: {
         save: async (_root, value) => {
-          savedResults.push(value.toPrimitives().status);
+          savedResults.push(value.toPrimitives() as unknown as Record<string, unknown>);
           return value;
         },
       },
@@ -72,7 +82,33 @@ describe("ExecuteRunUseCase", () => {
       ],
     });
 
-    expect(savedResults).toEqual(["failed", "completed"]);
+    expect(savedResults.map((result) => result.status)).toEqual(["failed", "completed"]);
+    expect(savedResults.map((result) => result.providerRequest)).toEqual([
+      {
+        transport: "in-memory",
+        target: "mock",
+        contentType: "application/json",
+        body: {
+          model: "mock-model",
+          prompt: {
+            format: "messages",
+            messages: [{ role: "user", content: "one" }],
+          },
+        },
+      },
+      {
+        transport: "in-memory",
+        target: "mock",
+        contentType: "application/json",
+        body: {
+          model: "mock-model",
+          prompt: {
+            format: "messages",
+            messages: [{ role: "user", content: "two" }],
+          },
+        },
+      },
+    ]);
     expect(savedRuns).toEqual(["running", "completed_with_failures"]);
   });
 });

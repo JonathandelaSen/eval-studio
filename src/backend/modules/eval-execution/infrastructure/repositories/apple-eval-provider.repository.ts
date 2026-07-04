@@ -5,6 +5,7 @@ import type {
   EvalProviderExecutionInput,
   EvalProviderRepository,
 } from "../../domain/repositories/eval-provider.repository";
+import { EvalProviderRequest } from "../../domain/value-objects/eval-provider-request.value-object";
 
 type HelperPayloadRow = {
   mode: "availability" | "execute";
@@ -32,15 +33,29 @@ export class AppleEvalProviderRepository implements EvalProviderRepository {
     return this.runHelper({ mode: "availability" });
   }
 
-  async execute(input: EvalProviderExecutionInput): Promise<EvalPromptExecution> {
+  prepare(input: EvalProviderExecutionInput): EvalProviderRequest {
     const { instructions, prompt } = this.promptParts(input.renderedPrompt.toPrimitives());
-    const started = Date.now();
-    const response = await this.runHelper({
-      mode: "execute",
-      instructions,
-      prompt,
-      ...(input.temperature ? { temperature: input.temperature.toPrimitives() } : {}),
+    return EvalProviderRequest.fromPrimitives({
+      transport: "process",
+      target: "apple-foundation-model",
+      contentType: "application/json",
+      body: {
+        mode: "execute",
+        instructions,
+        prompt,
+        ...(input.temperature ? { temperature: input.temperature.toPrimitives() } : {}),
+      },
     });
+  }
+
+  async execute(
+    input: EvalProviderExecutionInput,
+    request = this.prepare(input),
+  ): Promise<EvalPromptExecution> {
+    const prepared = request.toPrimitives();
+    if (!prepared) throw new Error("Provider request is missing.");
+    const started = Date.now();
+    const response = await this.runHelper(prepared.body as HelperPayloadRow);
     if (typeof response.output !== "string") {
       throw new Error(response.reason ?? "Apple system model returned no output.");
     }

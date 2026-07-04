@@ -26,15 +26,20 @@ describe("parseUpdateCaseRequest", () => {
     expect(parsed).toEqual({ ok: true, value: { note: null } });
   });
 
-  it("accepts JSON objects and clearing them with null", () => {
+  it("accepts legacy input updates and free-text expected output", () => {
     expect(parseUpdateCaseRequest({ input: { invoiceId: "inv-2" } })).toEqual({
       ok: true,
       value: { input: { invoiceId: "inv-2" } },
+    });
+    expect(parseUpdateCaseRequest({ expectedOutput: "The invoice is valid." })).toEqual({
+      ok: true,
+      value: { expectedOutput: "The invoice is valid." },
     });
     expect(parseUpdateCaseRequest({ expectedOutput: null })).toEqual({
       ok: true,
       value: { expectedOutput: null },
     });
+    expect(parseUpdateCaseRequest({ expectedOutput: { valid: true } }).ok).toBe(false);
   });
 
   it("rejects an empty update", () => {

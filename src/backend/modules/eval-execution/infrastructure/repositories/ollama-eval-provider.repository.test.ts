@@ -20,7 +20,7 @@ describe("OllamaEvalProviderRepository", () => {
   });
 
   it("executes a messages prompt through the chat API", async () => {
-    const fetcher = vi.fn(async () => new Response(JSON.stringify({
+    const fetcher = vi.fn<typeof fetch>(async () => new Response(JSON.stringify({
       model: "llama3.2:latest",
       message: { content: "Local answer" },
       prompt_eval_count: 12,
@@ -50,5 +50,14 @@ describe("OllamaEvalProviderRepository", () => {
       "http://localhost:11434/api/chat",
       expect.objectContaining({ method: "POST" }),
     );
+    expect(fetcher.mock.calls[0]?.[1]).toEqual({
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: "llama3.2:latest",
+        messages: [{ role: "user", content: "Hello" }],
+        stream: false,
+      }),
+    });
   });
 });

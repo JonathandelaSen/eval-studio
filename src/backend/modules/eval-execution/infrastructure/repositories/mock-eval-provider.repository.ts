@@ -3,8 +3,24 @@ import type {
   EvalProviderExecutionInput,
   EvalProviderRepository,
 } from "../../domain/repositories/eval-provider.repository";
+import { EvalProviderRequest } from "../../domain/value-objects/eval-provider-request.value-object";
 
 export class MockEvalProviderRepository implements EvalProviderRepository {
+  prepare(input: EvalProviderExecutionInput): EvalProviderRequest {
+    return EvalProviderRequest.fromPrimitives({
+      transport: "in-memory",
+      target: "mock",
+      contentType: "application/json",
+      body: {
+        model: input.model.toPrimitives(),
+        prompt: input.renderedPrompt.toPrimitives(),
+        ...(input.temperature
+          ? { temperature: input.temperature.toPrimitives() }
+          : {}),
+      },
+    });
+  }
+
   async execute(input: EvalProviderExecutionInput): Promise<EvalPromptExecution> {
     const started = Date.now();
     const rawOutput = JSON.stringify(

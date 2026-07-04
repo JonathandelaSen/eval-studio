@@ -19,6 +19,8 @@ import { EvalResultCompletedEvent } from "../events/eval-result-completed.event"
 import { EvalResultFailedEvent } from "../events/eval-result-failed.event";
 import type { EvalRuntimePrimitives } from "../value-objects/eval-runtime.value-object";
 import type { EvalResultErrorValue } from "../value-objects/eval-result-error.value-object";
+import { EvalProviderRequest } from "../value-objects/eval-provider-request.value-object";
+import type { EvalProviderRequestPrimitives } from "../value-objects/eval-provider-request.value-object";
 
 export interface EvalResultPrimitives {
   resultId: string;
@@ -29,6 +31,7 @@ export interface EvalResultPrimitives {
   runtime?: EvalRuntimePrimitives | null;
   promptVariables?: PromptVariablesValue;
   renderedPrompt: RenderedPromptPrimitives;
+  providerRequest?: EvalProviderRequestPrimitives;
   rawOutput: unknown | null;
   parsedOutput: unknown | null;
   status: EvalResultStatusValue;
@@ -46,6 +49,7 @@ export interface EvalResultCreateSuccessParams {
   runtime: EvalRuntimeNullable;
   promptVariables: PromptVariables;
   renderedPrompt: RenderedPrompt;
+  providerRequest: EvalProviderRequest;
   rawOutput: EvalRawOutputNullable;
   parsedOutput: EvalParsedOutputNullable;
   usage: EvalUsageNullable;
@@ -61,6 +65,7 @@ export interface EvalResultCreateFailedParams {
   runtime: EvalRuntimeNullable;
   promptVariables: PromptVariables;
   renderedPrompt: RenderedPrompt;
+  providerRequest: EvalProviderRequest;
   error: EvalResultError;
 }
 
@@ -74,6 +79,7 @@ export class EvalResult extends AggregateRoot {
     private readonly runtimeValue: EvalRuntimeNullable,
     private readonly promptVariablesValue: PromptVariables,
     private readonly renderedPromptValue: RenderedPrompt,
+    private readonly providerRequestValue: EvalProviderRequest,
     private readonly rawOutputValue: EvalRawOutputNullable,
     private readonly parsedOutputValue: EvalParsedOutputNullable,
     private readonly statusValue: EvalResultStatus,
@@ -94,6 +100,7 @@ export class EvalResult extends AggregateRoot {
       EvalRuntimeNullable.fromPrimitives(primitives.runtime),
       PromptVariables.fromPrimitives(primitives.promptVariables),
       RenderedPrompt.fromPrimitives(primitives.renderedPrompt),
+      EvalProviderRequest.fromPrimitives(primitives.providerRequest),
       EvalRawOutputNullable.fromPrimitives(primitives.rawOutput),
       EvalParsedOutputNullable.fromPrimitives(primitives.parsedOutput),
       EvalResultStatus.fromPrimitives(primitives.status),
@@ -113,6 +120,7 @@ export class EvalResult extends AggregateRoot {
       input.runtime,
       input.promptVariables,
       input.renderedPrompt,
+      input.providerRequest,
       input.rawOutput,
       input.parsedOutput,
       EvalResultStatus.completed(),
@@ -134,6 +142,7 @@ export class EvalResult extends AggregateRoot {
       input.runtime,
       input.promptVariables,
       input.renderedPrompt,
+      input.providerRequest,
       EvalRawOutputNullable.empty(),
       EvalParsedOutputNullable.empty(),
       EvalResultStatus.failed(),
@@ -159,6 +168,7 @@ export class EvalResult extends AggregateRoot {
       runtime: this.runtimeValue.toPrimitives(),
       promptVariables: this.promptVariablesValue.toPrimitives(),
       renderedPrompt: this.renderedPromptValue.toPrimitives(),
+      providerRequest: this.providerRequestValue.toPrimitives(),
       rawOutput: this.rawOutputValue.toPrimitives(),
       parsedOutput: this.parsedOutputValue.toPrimitives(),
       status: this.statusValue.toPrimitives(),

@@ -6,6 +6,7 @@ import {
   createSuite,
   createCase,
   deleteCase,
+  duplicateCase,
   deleteRun,
   deleteSuite,
   saveAnnotation,
@@ -55,6 +56,7 @@ export function useWorkspaceMutations() {
     createSuite: (payload: CreateSuitePayload) => perform(() => createSuite(payload)),
     deleteSuite: (suiteId: string) => perform(() => deleteSuite(suiteId)),
     createCase: (payload: CreateCasePayload) => perform(() => createCase(payload)),
+    duplicateCase: (caseId: string) => perform(() => duplicateCase(caseId)),
     updateRun: (runId: string, payload: UpdateRunPayload) =>
       perform(() => updateRun(runId, payload)),
     deleteRun: (runId: string) => perform(() => deleteRun(runId)),

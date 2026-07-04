@@ -11,9 +11,7 @@ import { formatJson, parseJsonObjectField, type EvalCaseItem } from "../workspac
 
 type JsonFieldsState = {
   input: string;
-  expectedOutput: string;
   inputError: string | null;
-  expectedOutputError: string | null;
 };
 
 export function CaseEditor({
@@ -31,10 +29,11 @@ export function CaseEditor({
     (current: JsonFieldsState, patch: Partial<JsonFieldsState>) => ({ ...current, ...patch }),
     {
       input: formatJson(testCase.input),
-      expectedOutput: formatJson(testCase.expectedOutput),
       inputError: null,
-      expectedOutputError: null,
     },
+  );
+  const [expectedOutput, setExpectedOutput] = React.useState(
+    formatJson(testCase.expectedOutput),
   );
   const promptMessages = Array.isArray(testCase.renderedPrompt.messages)
     ? testCase.renderedPrompt.messages as Array<Record<string, unknown>>
@@ -49,7 +48,6 @@ export function CaseEditor({
   async function persist(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     let parsedInput: Record<string, unknown> | undefined;
-    let parsedExpectedOutput: Record<string, unknown> | undefined;
     try {
       parsedInput = parseJsonObjectField(jsonFields.input);
       setJsonFields({ inputError: null });
@@ -57,19 +55,12 @@ export function CaseEditor({
       setJsonFields({ inputError: runsLabels.cases.jsonObjectError });
       return;
     }
-    try {
-      parsedExpectedOutput = parseJsonObjectField(jsonFields.expectedOutput);
-      setJsonFields({ expectedOutputError: null });
-    } catch {
-      setJsonFields({ expectedOutputError: runsLabels.cases.jsonObjectError });
-      return;
-    }
     const trimmedNote = note.trim();
     const updated = await mutations.updateCase(testCase.caseId, {
       name: name.trim(),
       note: trimmedNote ? trimmedNote : null,
       input: parsedInput ?? null,
-      expectedOutput: parsedExpectedOutput ?? null,
+      expectedOutput: expectedOutput.trim() || null,
       systemInstruction: systemInstruction.trim(),
       userMessage: userMessage.trim(),
     });
@@ -110,14 +101,11 @@ export function CaseEditor({
       <Textarea
         id={`case-expected-output-${testCase.caseId}`}
         name="expectedOutput"
-        className="min-h-28 font-mono text-xs"
+        className="min-h-28"
         placeholder={runsLabels.cases.expectedOutputPlaceholder}
-        value={jsonFields.expectedOutput}
-        aria-invalid={jsonFields.expectedOutputError ? true : undefined}
-        aria-describedby={jsonFields.expectedOutputError ? `case-expected-output-error-${testCase.caseId}` : undefined}
-        onChange={(event) => setJsonFields({ expectedOutput: event.target.value, expectedOutputError: null })}
+        value={expectedOutput}
+        onChange={(event) => setExpectedOutput(event.target.value)}
       />
-      {jsonFields.expectedOutputError && <p id={`case-expected-output-error-${testCase.caseId}`} role="alert" className="text-xs text-destructive">{jsonFields.expectedOutputError}</p>}
       <label htmlFor={`case-system-${testCase.caseId}`} className="text-xs font-medium">{runsLabels.cases.systemInstructionLabel} <span className="text-muted-foreground">{runsLabels.suites.optional}</span></label>
       <Textarea id={`case-system-${testCase.caseId}`} name="systemInstruction" value={systemInstruction} onChange={(event) => setSystemInstruction(event.target.value)} />
       <label htmlFor={`case-user-${testCase.caseId}`} className="text-xs font-medium">{runsLabels.cases.userMessageLabel}</label>

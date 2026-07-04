@@ -3,6 +3,7 @@ import type {
   EvalProviderExecutionInput,
   EvalProviderRepository,
 } from "../../domain/repositories/eval-provider.repository";
+import { EvalProviderRequest } from "../../domain/value-objects/eval-provider-request.value-object";
 
 type FetcherInput = typeof fetch;
 
@@ -25,21 +26,35 @@ export class OllamaEvalProviderRepository implements EvalProviderRepository {
       .map((model) => ({ id: model.name, label: model.name, ...(model.digest ? { digest: model.digest } : {}) }));
   }
 
-  async execute(input: EvalProviderExecutionInput): Promise<EvalPromptExecution> {
+  prepare(input: EvalProviderExecutionInput): EvalProviderRequest {
     const prompt = input.renderedPrompt.toPrimitives();
     const messages = this.messages(prompt);
-    const started = Date.now();
-    const response = await this.fetcher(`${this.baseUrl}/api/chat`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
+    return EvalProviderRequest.fromPrimitives({
+      transport: "http",
+      target: `${this.baseUrl}/api/chat`,
+      contentType: "application/json",
+      body: {
         model: input.model.toPrimitives(),
         messages,
         stream: false,
         ...(input.temperature
           ? { options: { temperature: input.temperature.toPrimitives() } }
           : {}),
-      }),
+      },
+    });
+  }
+
+  async execute(
+    input: EvalProviderExecutionInput,
+    request = this.prepare(input),
+  ): Promise<EvalPromptExecution> {
+    const prepared = request.toPrimitives();
+    if (!prepared) throw new Error("Provider request is missing.");
+    const started = Date.now();
+    const response = await this.fetcher(prepared.target, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(prepared.body),
     });
     if (!response.ok) throw new Error(`Ollama returned ${response.status}.`);
     const data = await response.json() as {

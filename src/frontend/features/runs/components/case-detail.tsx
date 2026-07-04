@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Pencil, Trash2 } from "lucide-react";
+import { Copy, Pencil, Trash2 } from "lucide-react";
 import type { EvalWorkspaceResponse } from "@/app/api/workspace/responses";
 import { Button } from "@/frontend/components/ui/button";
 import type { WorkspaceMutations } from "../hooks/use-workspace-mutations";
@@ -52,13 +52,24 @@ export function CaseDetail({
             <Button
               type="button"
               variant="outline"
+              size="icon"
+              className="size-7 text-muted-foreground hover:text-foreground"
+              aria-label={runsLabels.cases.duplicate}
+              onClick={() => mutations.duplicateCase(testCase.caseId)}
+              disabled={mutations.busy}
+            >
+              <Copy aria-hidden="true" className="size-3.5" />
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
               size="sm"
               className="h-7 px-2 text-[11px] font-medium border-border hover:bg-muted text-muted-foreground hover:text-foreground flex items-center gap-1"
               aria-label={runsLabels.cases.edit}
               onClick={() => setEditing((value) => !value)}
             >
               <Pencil className="size-3" />
-              <span>Edit</span>
+              <span>{runsLabels.cases.edit}</span>
             </Button>
             <Button
               type="button"
@@ -70,7 +81,7 @@ export function CaseDetail({
               disabled={mutations.busy}
             >
               <Trash2 className="size-3" />
-              <span>Delete</span>
+              <span>{runsLabels.cases.delete}</span>
             </Button>
           </div>
         </div>

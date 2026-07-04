@@ -9,7 +9,7 @@ const updateCaseSchema = z
     name: z.string().trim().min(1).optional(),
     note: z.string().trim().min(1).nullable().optional(),
     input: jsonObjectSchema.nullable().optional(),
-    expectedOutput: jsonObjectSchema.nullable().optional(),
+    expectedOutput: z.string().trim().min(1).nullable().optional(),
     systemInstruction: z.string().trim().optional(),
     userMessage: z.string().trim().min(1).optional(),
   })

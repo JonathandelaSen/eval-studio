@@ -20,7 +20,8 @@ export interface EvalCasePrimitives extends JsonRecord {
   promptVariables?: JsonRecord;
   renderedPrompt: CapturedPromptPrimitives;
   runtime?: RuntimePrimitives;
-  expectedOutput?: JsonRecord;
+  /** New cases store free text; JsonRecord keeps existing workspaces readable. */
+  expectedOutput?: string | JsonRecord;
   source?: JsonRecord;
 }
 

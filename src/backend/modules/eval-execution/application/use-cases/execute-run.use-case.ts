@@ -49,6 +49,13 @@ export class ExecuteRunUseCase {
       const model = EvalModel.fromPrimitives(runtime.model);
       const temperature = EvalTemperatureNullable.fromPrimitives(runtime.temperature);
       const renderedPrompt = RenderedPrompt.fromPrimitives(testCase.renderedPrompt);
+      const executionInput = {
+        provider,
+        model,
+        renderedPrompt,
+        temperature: temperature.valueValue ?? undefined,
+      };
+      const providerRequest = this.deps.providerRepository.prepare(executionInput);
       const base = {
         id: ResultId.create({ evalRunId: input.run.id, caseId: CaseId.fromPrimitives(testCase.caseId) }),
         caseId: CaseId.fromPrimitives(testCase.caseId),
@@ -57,15 +64,14 @@ export class ExecuteRunUseCase {
         runtime: EvalRuntimeNullable.fromPrimitives(runtime),
         promptVariables: PromptVariables.fromPrimitives(testCase.promptVariables),
         renderedPrompt,
+        providerRequest,
       };
       let result: EvalResult;
       try {
-        const output = (await this.deps.providerRepository.execute({
-          provider,
-          model,
-          renderedPrompt,
-          temperature: temperature.valueValue ?? undefined,
-        })).toPrimitives();
+        const output = (await this.deps.providerRepository.execute(
+          executionInput,
+          providerRequest,
+        )).toPrimitives();
         const effective = output.effectiveRuntime;
         result = EvalResult.createSuccess({
           ...base,

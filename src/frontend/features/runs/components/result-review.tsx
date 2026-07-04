@@ -4,41 +4,28 @@ import * as React from "react";
 import {
   CircleDot,
   XCircle,
-  Copy,
-  Check,
-  Braces,
 } from "lucide-react";
 import type { EvalWorkspaceResponse } from "@/app/api/workspace/responses";
 import { Button } from "@/frontend/components/ui/button";
 import { Input } from "@/frontend/components/ui/input";
 import { Textarea } from "@/frontend/components/ui/textarea";
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "@/frontend/components/ui/tabs";
 import { cn } from "@/frontend/utils/cn";
 import type { WorkspaceMutations } from "../hooks/use-workspace-mutations";
 import { runsLabels } from "../labels";
 import {
   annotationFor,
-  formatJson,
   promptText,
   readableText,
   criteriaList,
-  formatLatency,
-  formatDate,
   type EvalResultItem,
 } from "../workspace-format";
+import { CopyButton } from "./copy-button";
+import { ResultTechnicalDetails } from "./result-technical-details";
 
 export function ResultReview({
   snapshot,
   result,
   mutations,
-  onSelectCase,
-  results = [],
-  onSelectResult,
 }: {
   snapshot: EvalWorkspaceResponse;
   result: EvalResultItem;
@@ -58,26 +45,13 @@ export function ResultReview({
   const fallbackInput = testCase?.input ? (readableText(testCase.input)?.trim() ?? "") : "";
   const displayPrompt = promptTextVal || fallbackInput;
 
-  const exactMatch =
-    !failed && !!outputText && !!expectedText && outputText === expectedText;
-
-  const provider = result.runtime?.provider ?? result.producer ?? "?";
-  const model = result.runtime?.model ?? "?";
-  const temperature = result.runtime?.temperature;
-
-  const caseName = testCase?.name ?? result.caseId;
-
-  const currentIndex = results.findIndex((r) => r.resultId === result.resultId);
-
   return (
     <div className="w-full flex flex-col gap-4">
-      {/* 3-Column Comparison Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        {/* Column 1: Prompt Section */}
         <div className="flex flex-col rounded-lg border bg-card/60 shadow-sm min-h-[350px] max-h-[420px]">
           <header className="flex items-center justify-between border-b px-4 py-2 bg-muted/20 select-none">
             <span className="font-mono text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-              Prompt
+              {runsLabels.review.promptPanel}
             </span>
             {displayPrompt && <CopyButton text={displayPrompt} />}
           </header>
@@ -85,16 +59,15 @@ export function ResultReview({
             {displayPrompt ? (
               displayPrompt
             ) : (
-              <span className="text-xs text-muted-foreground italic">No prompt captured.</span>
+              <span className="text-xs text-muted-foreground italic">{runsLabels.review.emptyPrompt}</span>
             )}
           </div>
         </div>
 
-        {/* Column 2: Expected Output Card */}
         <div className="flex flex-col rounded-lg border bg-emerald-500/[0.01] border-emerald-500/10 shadow-sm min-h-[350px] max-h-[420px]">
           <header className="flex items-center justify-between border-b border-emerald-500/10 px-4 py-2 bg-emerald-500/[0.04] select-none">
             <span className="font-mono text-[10px] font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">
-              Expected Output
+              {runsLabels.review.expectedPanel}
             </span>
             {expectedText && <CopyButton text={expectedText} />}
           </header>
@@ -102,13 +75,13 @@ export function ResultReview({
             {expectedText ? (
               expectedText
             ) : (
-              <span className="text-xs text-muted-foreground italic">No expected output defined.</span>
+              <span className="text-xs text-muted-foreground italic">{runsLabels.review.emptyExpected}</span>
             )}
           </div>
           {criteria.length > 0 && (
             <footer className="border-t border-emerald-500/10 p-3 bg-emerald-500/[0.02]">
               <span className="font-mono text-[9px] font-semibold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 block mb-1">
-                Criteria
+                {runsLabels.spotlight.criteriaLabel}
               </span>
               <ul className="flex flex-col gap-1 text-[11px] text-muted-foreground list-disc pl-4" role="list">
                 {criteria.map((criterion) => (
@@ -119,7 +92,6 @@ export function ResultReview({
           )}
         </div>
 
-        {/* Column 3: Model Output Card */}
         <div
           className={cn(
             "flex flex-col rounded-lg border shadow-sm min-h-[350px] max-h-[420px]",
@@ -142,7 +114,7 @@ export function ResultReview({
                 failed ? "text-destructive" : "text-blue-600 dark:text-blue-400"
               )}
             >
-              {failed ? "Failure Error" : "Model Output"}
+              {failed ? runsLabels.review.errorTitle : runsLabels.review.outputPanel}
             </span>
             {!failed && outputText && <CopyButton text={outputText} />}
           </header>
@@ -155,13 +127,12 @@ export function ResultReview({
             ) : outputText ? (
               outputText
             ) : (
-              <span className="text-xs text-muted-foreground italic font-sans font-sans">No output captured.</span>
+              <span className="text-xs text-muted-foreground italic font-sans font-sans">{runsLabels.spotlight.emptyOutput}</span>
             )}
           </div>
         </div>
       </div>
 
-      {/* Row 2: Full width Annotation Form */}
       <AnnotationForm
         key={result.resultId}
         snapshot={snapshot}
@@ -169,81 +140,12 @@ export function ResultReview({
         mutations={mutations}
       />
 
-      {/* Bottom Technical Details Accordion */}
-      <details className="group bg-muted/10 border rounded-lg overflow-hidden">
-        <summary className="flex cursor-pointer items-center justify-between px-5 py-3 font-mono text-[10px] font-semibold uppercase tracking-wider text-muted-foreground hover:text-foreground transition-colors select-none">
-          <div className="flex items-center gap-1.5">
-            <Braces className="size-3.5" />
-            <span>{runsLabels.technical.summary}</span>
-          </div>
-          <span className="text-xs text-muted-foreground/60 group-open:rotate-180 transition-transform duration-200">
-            ▼
-          </span>
-        </summary>
-        <div className="p-5 border-t bg-card">
-          <Tabs defaultValue="variables" className="w-full">
-            <TabsList className="mb-4">
-              <TabsTrigger value="variables">Variables</TabsTrigger>
-              <TabsTrigger value="template">Template</TabsTrigger>
-              <TabsTrigger value="raw">Raw JSON</TabsTrigger>
-            </TabsList>
-            <TabsContent value="variables">
-              <pre className="max-h-[300px] overflow-auto rounded-lg border bg-muted/30 p-4 text-xs font-mono text-foreground">
-                <code>
-                  {formatJson(result.promptVariables ?? testCase?.promptVariables ?? null) || "No variables captured."}
-                </code>
-              </pre>
-            </TabsContent>
-            <TabsContent value="template">
-              <pre className="max-h-[300px] overflow-auto rounded-lg border bg-muted/30 p-4 text-xs font-mono text-foreground">
-                <code>
-                  {result.renderedPrompt?.format || "No template captured."}
-                </code>
-              </pre>
-            </TabsContent>
-            <TabsContent value="raw">
-              <pre className="max-h-[400px] overflow-auto rounded-lg border bg-muted/30 p-4 text-xs font-mono text-foreground">
-                <code>
-                  {formatJson({
-                    result,
-                    case: testCase ?? null,
-                    annotation: annotationFor(snapshot, result.resultId) ?? null,
-                  })}
-                </code>
-              </pre>
-            </TabsContent>
-          </Tabs>
-        </div>
-      </details>
+      <ResultTechnicalDetails
+        result={result}
+        testCase={testCase}
+        annotation={annotationFor(snapshot, result.resultId) ?? null}
+      />
     </div>
-  );
-}
-
-function CopyButton({ text }: { text: string }) {
-  const [copied, setCopied] = React.useState(false);
-  const handleCopy = async () => {
-    try {
-      await navigator.clipboard.writeText(text);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    } catch (err) {
-      console.error("Failed to copy text: ", err);
-    }
-  };
-
-  return (
-    <button
-      type="button"
-      onClick={handleCopy}
-      className="p-1 rounded hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
-      title="Copy to clipboard"
-    >
-      {copied ? (
-        <Check className="size-3.5 text-emerald-500" />
-      ) : (
-        <Copy className="size-3.5" />
-      )}
-    </button>
   );
 }
 
@@ -299,9 +201,8 @@ function AnnotationForm({
       </div>
 
       <div className="flex flex-col gap-3">
-        {/* Score Buttons Row */}
         <div className="flex flex-col gap-1.5">
-          <span className="text-[11px] text-muted-foreground font-medium">Score</span>
+          <span className="text-[11px] text-muted-foreground font-medium">{runsLabels.review.scoreLabel}</span>
           <div
             className="flex gap-1.5"
             role="radiogroup"
@@ -327,9 +228,8 @@ function AnnotationForm({
           </div>
         </div>
 
-        {/* Comment Textarea */}
         <div className="flex flex-col gap-1.5">
-          <span className="text-[11px] text-muted-foreground font-medium">Comment</span>
+          <span className="text-[11px] text-muted-foreground font-medium">{runsLabels.review.commentLabel}</span>
           <Textarea
             aria-label={runsLabels.review.commentLabel}
             placeholder={runsLabels.review.commentPlaceholder}
@@ -339,10 +239,9 @@ function AnnotationForm({
           />
         </div>
 
-        {/* Tags Input & Save Button Row */}
         <div className="flex items-end gap-2">
           <div className="flex-1 flex flex-col gap-1.5">
-            <span className="text-[11px] text-muted-foreground font-medium">Tags</span>
+            <span className="text-[11px] text-muted-foreground font-medium">{runsLabels.review.tagsLabel}</span>
             <Input
               aria-label={runsLabels.review.tagsLabel}
               placeholder={runsLabels.review.tagsPlaceholder}

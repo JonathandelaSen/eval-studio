@@ -59,16 +59,41 @@ export class FilesystemEvalCaseRepository implements EvalCaseRepository {
       try {
         const raw = await fs.readFile(file, "utf8");
         const rawValue = JSON.parse(raw) as Record<string, unknown>;
+        if (rawValue.caseId !== target) continue;
+        const owningSuiteId = await this.findOwningSuiteId(file, target);
         const parsed = {
           ...rawValue,
-          suiteId: rawValue.suiteId ?? rawValue.actionId,
+          suiteId: owningSuiteId ?? rawValue.suiteId ?? rawValue.actionId,
         } as Parameters<typeof EvalCase.fromPrimitives>[0];
-        if (parsed.caseId === target) return { file, primitives: parsed };
+        return { file, primitives: parsed };
       } catch {
         continue;
       }
     }
     throw new CaseNotFoundError();
+  }
+
+  private async findOwningSuiteId(
+    caseFile: string,
+    caseId: string,
+  ): Promise<string | undefined> {
+    try {
+      const suiteFile = path.join(path.dirname(caseFile), "..", "suite.json");
+      const suite = JSON.parse(await fs.readFile(suiteFile, "utf8")) as Record<
+        string,
+        unknown
+      >;
+      if (
+        typeof suite.suiteId === "string" &&
+        Array.isArray(suite.caseIds) &&
+        suite.caseIds.includes(caseId)
+      ) {
+        return suite.suiteId;
+      }
+    } catch {
+      // Fall back to the ownership declared by the case artifact.
+    }
+    return undefined;
   }
 
   private async findCaseFiles(directory: string): Promise<string[]> {

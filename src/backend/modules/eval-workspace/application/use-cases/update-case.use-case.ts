@@ -10,7 +10,7 @@ export type UpdateCaseInput = {
   name?: string;
   note?: string | null;
   input?: JsonRecord | null;
-  expectedOutput?: JsonRecord | null;
+  expectedOutput?: string | null;
   systemInstruction?: string;
   userMessage?: string;
 };
@@ -25,17 +25,19 @@ export class UpdateCaseUseCase {
     const caseId = CaseId.fromPrimitives(input.caseId);
     const existing = await this.deps.caseRepository.find(workspaceRoot, caseId);
     const primitives = existing.toPrimitives();
-    const renderedPrompt = input.userMessage === undefined
+    const userMessage = input.userMessage?.trim();
+    const systemInstruction = input.systemInstruction?.trim();
+    const renderedPrompt = userMessage === undefined
       ? primitives.renderedPrompt
-      : {
-          format: "messages",
-          messages: [
-            ...(input.systemInstruction?.trim()
-              ? [{ role: "system", content: input.systemInstruction.trim() }]
-              : []),
-            { role: "user", content: input.userMessage.trim() },
-          ],
-        };
+      : systemInstruction
+        ? {
+            format: "messages",
+            messages: [
+              { role: "system", content: systemInstruction },
+              { role: "user", content: userMessage },
+            ],
+          }
+        : { format: "text", text: userMessage };
     if (input.userMessage !== undefined && !input.userMessage.trim()) {
       throw new Error("User message cannot be empty.");
     }
@@ -49,7 +51,7 @@ export class UpdateCaseUseCase {
       expectedOutput:
         input.expectedOutput === undefined
           ? primitives.expectedOutput
-          : input.expectedOutput ?? undefined,
+          : input.expectedOutput?.trim() || undefined,
       renderedPrompt,
     });
     return this.deps.caseRepository.save(workspaceRoot, updated);

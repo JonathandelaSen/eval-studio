@@ -14,6 +14,7 @@ import { FilesystemEvalSuiteRepository } from "./infrastructure/filesystem-eval-
 import { CreateSuiteUseCase } from "./application/use-cases/create-suite.use-case";
 import { CreateCaseUseCase } from "./application/use-cases/create-case.use-case";
 import { DeleteSuiteUseCase } from "./application/use-cases/delete-suite.use-case";
+import { DuplicateCaseUseCase } from "./application/use-cases/duplicate-case.use-case";
 
 export function createEvalWorkspaceModule() {
   const workspaceRepo = new FilesystemEvalWorkspaceRepository();
@@ -28,6 +29,10 @@ export function createEvalWorkspaceModule() {
     createSuite: new CreateSuiteUseCase({ suiteRepository }),
     deleteSuite: new DeleteSuiteUseCase({ suiteRepository }),
     createCase: new CreateCaseUseCase({ caseRepository, suiteRepository }),
+    duplicateCase: new DuplicateCaseUseCase({
+      caseRepository,
+      suiteRepository,
+    }),
     saveAnnotation: new SaveAnnotationUseCase(annotationRepo),
     updateCase: new UpdateCaseUseCase({ caseRepository }),
     deleteCase: new DeleteCaseUseCase({ caseRepository, suiteRepository }),

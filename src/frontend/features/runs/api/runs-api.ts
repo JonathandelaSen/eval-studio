@@ -34,7 +34,7 @@ export type UpdateCasePayload = {
   name?: string;
   note?: string | null;
   input?: Record<string, unknown> | null;
-  expectedOutput?: Record<string, unknown> | null;
+  expectedOutput?: string | null;
   systemInstruction?: string;
   userMessage?: string;
 };
@@ -44,8 +44,7 @@ export type CreateCasePayload = {
   suiteId: string;
   name: string;
   note?: string;
-  input?: Record<string, unknown>;
-  expectedOutput?: Record<string, unknown>;
+  expectedOutput?: string;
   systemInstruction?: string;
   userMessage: string;
 };
@@ -89,6 +88,14 @@ export async function createCase(payload: CreateCasePayload): Promise<CreateCase
   return readJsonResponse<CreateCaseResponse>(await fetch("/api/cases", {
     method: "POST", headers: jsonHeaders, body: JSON.stringify(payload),
   }));
+}
+
+export async function duplicateCase(caseId: string): Promise<CreateCaseResponse> {
+  return readJsonResponse<CreateCaseResponse>(
+    await fetch(`/api/cases/${encodeURIComponent(caseId)}/duplicate`, {
+      method: "POST",
+    }),
+  );
 }
 
 export async function listProviders(): Promise<ProvidersResponse> {

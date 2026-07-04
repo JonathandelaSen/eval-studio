@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { EvalModel } from "../../domain/value-objects/eval-model.value-object";
 import { EvalProvider } from "../../domain/value-objects/eval-provider.value-object";
 import { RenderedPrompt } from "../../domain/value-objects/rendered-prompt.value-object";
@@ -17,8 +17,12 @@ describe("AppleEvalProviderRepository", () => {
   });
 
   it("executes instructions and a prompt through the native helper", async () => {
+    const runHelper = vi.fn(async (payload: {
+      instructions?: string;
+      prompt?: string;
+    }) => ({ output: `${payload.instructions}|${payload.prompt}` }));
     const provider = new AppleEvalProviderRepository({
-      runHelper: async (payload) => ({ output: `${payload.instructions}|${payload.prompt}` }),
+      runHelper,
     });
     const result = await provider.execute({
       provider: EvalProvider.apple(),
@@ -32,5 +36,10 @@ describe("AppleEvalProviderRepository", () => {
       }),
     });
     expect(result.toPrimitives().rawOutput).toBe("Be concise|Hello");
+    expect(runHelper).toHaveBeenCalledWith({
+      mode: "execute",
+      instructions: "Be concise",
+      prompt: "Hello",
+    });
   });
 });

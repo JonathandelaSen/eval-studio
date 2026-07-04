@@ -15,6 +15,7 @@ import { EvalUsageNullable } from "../value-objects/eval-usage-nullable.value-ob
 import { EvalLatencyMsNullable } from "../value-objects/eval-latency-ms-nullable.value-object";
 import { EvalResultCompletedEvent } from "../events/eval-result-completed.event";
 import { EvalResultFailedEvent } from "../events/eval-result-failed.event";
+import { EvalProviderRequest } from "../value-objects/eval-provider-request.value-object";
 
 describe("EvalResult", () => {
   it("hydrates identities and round-trips primitives", () => {
@@ -47,6 +48,7 @@ describe("EvalResult", () => {
       runtime: EvalRuntimeNullable.empty(),
       promptVariables: PromptVariables.empty(),
       renderedPrompt: RenderedPrompt.fromPrimitives({ format: "messages", messages: [] }),
+      providerRequest: EvalProviderRequest.empty(),
       rawOutput: EvalRawOutputNullable.fromPrimitives("ok"),
       parsedOutput: EvalParsedOutputNullable.fromPrimitives({ score: 1 }),
       usage: EvalUsageNullable.fromPrimitives(null),
@@ -71,6 +73,7 @@ describe("EvalResult", () => {
       runtime: EvalRuntimeNullable.empty(),
       promptVariables: PromptVariables.empty(),
       renderedPrompt: RenderedPrompt.fromPrimitives({ format: "messages", messages: [] }),
+      providerRequest: EvalProviderRequest.empty(),
       error: EvalResultError.providerError("Some error"),
     });
 

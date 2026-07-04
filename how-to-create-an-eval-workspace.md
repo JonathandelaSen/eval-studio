@@ -393,6 +393,18 @@ Completed result example:
       }
     ]
   },
+  "providerRequest": {
+    "transport": "in-memory",
+    "target": "mock",
+    "contentType": "application/json",
+    "body": {
+      "model": "mock-evaluator",
+      "prompt": {
+        "format": "text",
+        "text": "Exact provider input"
+      }
+    }
+  },
   "rawOutput": "{\"answer\":\"The standard return window is 30 days.\"}",
   "parsedOutput": {
     "answer": "The standard return window is 30 days."
@@ -416,6 +428,7 @@ Completed result example:
 | `producer` | Yes | Currently must be exactly `"eval-studio"`. |
 | `createdAt` | Yes | Valid date string; ISO 8601 UTC is recommended. |
 | `renderedPrompt` | Yes | Exact prompt used. Its `format` must be non-empty. |
+| `providerRequest` | No | Exact request captured at execution time, including transport, target, content type, and body. New Eval Studio runs persist it for both successful and failed calls. |
 | `status` | Yes | Exactly `"completed"` or `"failed"`. |
 | `error` | Yes | `null` for success; an error object for failure. |
 | `runtime` | No | Same runtime object as a run, or `null`. |
@@ -427,6 +440,9 @@ Completed result example:
 
 Persist `renderedPrompt` on every result even when it is identical to the case.
 This makes each execution auditable if variables or prompt generation change.
+Persist `providerRequest` when the execution layer exposes it. Do not synthesize
+this field for historical results because reconstructed payloads are not exact
+execution evidence.
 
 Failed result example:
 
