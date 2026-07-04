@@ -8,13 +8,14 @@ import type { WorkspaceMutations } from "../hooks/use-workspace-mutations";
 import type { EvalCaseItem } from "../workspace-format";
 import { useProviderCatalog } from "../hooks/use-provider-catalog";
 import { runsLabels } from "../labels";
+import { caseIdsForNewRun } from "../new-run-selection";
 
 export function NewRunPanel({
-  cases,
+  testCase,
   suiteId,
   mutations,
 }: {
-  cases: EvalCaseItem[];
+  testCase: EvalCaseItem;
   suiteId: string;
   mutations: WorkspaceMutations;
 }) {
@@ -22,7 +23,6 @@ export function NewRunPanel({
   const [provider, setProvider] = React.useState("");
   const [model, setModel] = React.useState("");
   const [name, setName] = React.useState("");
-  const [selected, setSelected] = React.useState(() => new Set(cases.map((item) => item.caseId)));
 
   React.useEffect(() => {
     if (provider || catalog.length === 0) return;
@@ -43,7 +43,7 @@ export function NewRunPanel({
     await mutations.createRun({
       name: name.trim() || `${model} ${new Date().toISOString().slice(0, 16)}`,
       suiteId,
-      caseIds: [...selected],
+      caseIds: caseIdsForNewRun(testCase.caseId),
       provider,
       model,
       temperature: 0,
@@ -57,6 +57,10 @@ export function NewRunPanel({
         <Play className="size-4" aria-hidden="true" /> {runsLabels.newRun.title}
       </summary>
       <form onSubmit={submit} className="grid gap-3 border-t p-4" aria-label={runsLabels.newRun.start}>
+        <p className="rounded-md border border-primary/20 bg-primary/5 px-3 py-2 text-xs text-muted-foreground">
+          {runsLabels.newRun.caseScope}{" "}
+          <strong className="font-medium text-foreground">{testCase.name}</strong>
+        </p>
         <label htmlFor="run-name" className="text-xs font-medium">{runsLabels.newRun.nameLabel} <span className="text-muted-foreground">{runsLabels.suites.optional}</span></label>
         <Input id="run-name" name="name" value={name} onChange={(event) => setName(event.target.value)} />
         <fieldset className="grid gap-2">
@@ -73,20 +77,7 @@ export function NewRunPanel({
         <select id="run-model" name="model" required value={model} onChange={(event) => setModel(event.target.value)} className="h-10 rounded-md border bg-background px-3 text-sm">
           {(activeProvider?.models ?? []).map((item) => <option key={item.id} value={item.id}>{item.label}</option>)}
         </select>
-        <fieldset className="grid gap-1">
-          <legend className="text-xs font-medium">{runsLabels.newRun.casesLabel}</legend>
-          {cases.map((item) => (
-            <label key={item.caseId} className="flex min-h-10 items-center gap-2 text-sm">
-              <input type="checkbox" checked={selected.has(item.caseId)} onChange={(event) => setSelected((current) => {
-                const next = new Set(current);
-                if (event.target.checked) next.add(item.caseId); else next.delete(item.caseId);
-                return next;
-              })} />
-              {item.name}
-            </label>
-          ))}
-        </fieldset>
-        <Button type="submit" disabled={mutations.busy || !provider || !model || selected.size === 0}>
+        <Button type="submit" disabled={mutations.busy || !provider || !model}>
           <Play data-icon="inline-start" /> {runsLabels.newRun.start}
         </Button>
       </form>

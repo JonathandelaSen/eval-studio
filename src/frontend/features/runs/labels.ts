@@ -37,10 +37,9 @@ export const runsLabels = {
     namePlaceholder: "Baseline sweep",
     modelLabel: "Model",
     providerLabel: "Provider",
-    casesLabel: "Cases",
+    caseScope: "This run will execute only",
     start: "Start run",
     starting: "Running",
-    caseCountSuffix: "cases will execute",
   },
   runs: {
     listTitle: "Run history",

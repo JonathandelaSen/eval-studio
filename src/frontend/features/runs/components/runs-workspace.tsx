@@ -101,7 +101,7 @@ export function RunsWorkspace({ snapshot }: { snapshot: EvalWorkspaceResponse })
                   selectedRunId={activeRun?.runId ?? null}
                   onSelectRun={selectRun}
                 />
-                {cases.length > 0 ? <NewRunPanel cases={cases} suiteId={suiteId} mutations={mutations} /> : <NewCasePanel suiteId={suiteId} mutations={mutations} />}
+                {activeCase ? <NewRunPanel testCase={activeCase} suiteId={suiteId} mutations={mutations} /> : <NewCasePanel suiteId={suiteId} mutations={mutations} />}
               </div>
               {activeRun ? (
                 <RunDetail
