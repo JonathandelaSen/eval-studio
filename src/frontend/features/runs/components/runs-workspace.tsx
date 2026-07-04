@@ -21,6 +21,7 @@ import { RunCaseFilter } from "./run-case-filter";
 import { RunList } from "./run-list";
 import { WorkspaceFilesPanel } from "@/frontend/features/workspace-files";
 import { SuiteBar } from "./suite-bar";
+import { SuiteStats } from "./suite-stats";
 import { NewCasePanel } from "./new-case-panel";
 import { useRouter } from "next/navigation";
 
@@ -84,6 +85,7 @@ export function RunsWorkspace({ snapshot }: { snapshot: EvalWorkspaceResponse })
             <TabsList>
               <TabsTrigger value="runs">{runsLabels.views.runs}</TabsTrigger>
               <TabsTrigger value="cases">{runsLabels.views.cases}</TabsTrigger>
+              <TabsTrigger value="stats">{runsLabels.views.stats}</TabsTrigger>
               <TabsTrigger value="files">{runsLabels.views.files}</TabsTrigger>
             </TabsList>
           </div>
@@ -139,6 +141,13 @@ export function RunsWorkspace({ snapshot }: { snapshot: EvalWorkspaceResponse })
                 </p>
               )}
             </div>}
+          </TabsContent>
+          <TabsContent value="stats" className="mt-3">
+            {!suiteId ? (
+              <EmptyWorkspace />
+            ) : (
+              <SuiteStats snapshot={snapshot} suiteId={suiteId} />
+            )}
           </TabsContent>
           <TabsContent value="files" className="mt-3">
             <WorkspaceFilesPanel active={view === "files"} />

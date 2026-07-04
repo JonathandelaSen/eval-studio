@@ -4,13 +4,7 @@ import * as React from "react";
 import { Play } from "lucide-react";
 import { Button } from "@/frontend/components/ui/button";
 import { Input } from "@/frontend/components/ui/input";
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetTitle,
-  SheetTrigger,
-} from "@/frontend/components/ui/sheet";
+import { NewActionSheet } from "@/frontend/components/shared/new-action-sheet";
 import type { WorkspaceMutations } from "../hooks/use-workspace-mutations";
 import type { EvalCaseItem } from "../workspace-format";
 import { useProviderCatalog } from "../hooks/use-provider-catalog";
@@ -31,7 +25,6 @@ export function NewRunSheet({
   mutations: WorkspaceMutations;
 }) {
   const { providers: catalog, error: catalogError } = useProviderCatalog();
-  const [open, setOpen] = React.useState(false);
   const [selected, setSelected] = React.useState<ReadonlySet<string>>(new Set());
   const [namePrefix, setNamePrefix] = React.useState("");
   const [temperature, setTemperature] = React.useState("0");
@@ -68,7 +61,7 @@ export function NewRunSheet({
     });
   }
 
-  async function submit(event: React.FormEvent<HTMLFormElement>) {
+  async function submit(event: React.FormEvent<HTMLFormElement>, close: () => void) {
     event.preventDefault();
     const parsedTemp = parseFloat(temperature);
     const prefix = namePrefix.trim();
@@ -86,22 +79,21 @@ export function NewRunSheet({
     if (!created) return;
     setNamePrefix("");
     setSelected(new Set());
-    setOpen(false);
+    close();
   }
 
   const count = selections.length;
   const startLabel = `${runsLabels.newRun.start} ${count} ${count === 1 ? runsLabels.newRun.runSingular : runsLabels.newRun.runPlural}`;
 
   return (
-    <Sheet open={open} onOpenChange={setOpen}>
-      <SheetTrigger asChild>
-        <Button variant="outline">
-          <Play data-icon="inline-start" /> {runsLabels.newRun.title}
-        </Button>
-      </SheetTrigger>
-      <SheetContent aria-describedby={undefined}>
-        <SheetTitle>{runsLabels.newRun.title}</SheetTitle>
-        <form onSubmit={submit} className="grid gap-3" aria-label={runsLabels.newRun.title}>
+    <NewActionSheet
+      triggerLabel={runsLabels.newRun.title}
+      triggerIcon={Play}
+      title={runsLabels.newRun.title}
+      triggerClassName="w-full"
+    >
+      {(close) => (
+        <form onSubmit={(event) => submit(event, close)} className="grid gap-3" aria-label={runsLabels.newRun.title}>
           <p className="rounded-md border border-primary/20 bg-primary/5 px-3 py-2 text-xs text-muted-foreground">
             {runsLabels.newRun.caseScope}{" "}
             <strong className="font-medium text-foreground">{testCase.name}</strong>
@@ -172,7 +164,7 @@ export function NewRunSheet({
             <Play data-icon="inline-start" /> {startLabel}
           </Button>
         </form>
-      </SheetContent>
-    </Sheet>
+      )}
+    </NewActionSheet>
   );
 }

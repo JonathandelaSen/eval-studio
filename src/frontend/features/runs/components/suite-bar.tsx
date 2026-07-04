@@ -8,6 +8,7 @@ import { Input } from "@/frontend/components/ui/input";
 import type { WorkspaceMutations } from "../hooks/use-workspace-mutations";
 import { runsLabels } from "../labels";
 import { nextSuiteIdAfterDelete } from "../suite-selection";
+import { NewActionSheet } from "@/frontend/components/shared/new-action-sheet";
 
 export function SuiteBar({
   snapshot,
@@ -23,7 +24,7 @@ export function SuiteBar({
   const [name, setName] = React.useState("");
   const [description, setDescription] = React.useState("");
 
-  async function submit(event: React.FormEvent<HTMLFormElement>) {
+  async function submit(event: React.FormEvent<HTMLFormElement>, close: () => void) {
     event.preventDefault();
     const created = await mutations.createSuite({
       name: name.trim(),
@@ -33,6 +34,7 @@ export function SuiteBar({
       setName("");
       setDescription("");
       onSelect(created.suiteId);
+      close();
     }
   }
 
@@ -74,18 +76,23 @@ export function SuiteBar({
         <Trash2 aria-hidden="true" className="size-3.5" />
         {runsLabels.suites.delete}
       </Button>
-      <details className="min-w-72 flex-1">
-        <summary className="cursor-pointer text-sm font-medium text-primary">{runsLabels.suites.new}</summary>
-        <form onSubmit={submit} className="mt-2 grid gap-2" aria-label={runsLabels.suites.create}>
-          <label className="text-xs font-medium" htmlFor="suite-name">{runsLabels.suites.name}</label>
-          <Input id="suite-name" name="name" required value={name} onChange={(event) => setName(event.target.value)} />
-          <label className="text-xs font-medium" htmlFor="suite-description">{runsLabels.suites.description} <span className="text-muted-foreground">{runsLabels.suites.optional}</span></label>
-          <Input id="suite-description" name="description" value={description} onChange={(event) => setDescription(event.target.value)} />
-          <Button type="submit" disabled={mutations.busy}>
-            <FolderPlus data-icon="inline-start" /> {runsLabels.suites.create}
-          </Button>
-        </form>
-      </details>
+      <NewActionSheet
+        triggerLabel={runsLabels.suites.new}
+        triggerIcon={FolderPlus}
+        title={runsLabels.suites.new}
+      >
+        {(close) => (
+          <form onSubmit={(event) => submit(event, close)} className="grid gap-3" aria-label={runsLabels.suites.create}>
+            <label className="text-xs font-medium" htmlFor="suite-name">{runsLabels.suites.name}</label>
+            <Input id="suite-name" name="name" required value={name} onChange={(event) => setName(event.target.value)} />
+            <label className="text-xs font-medium" htmlFor="suite-description">{runsLabels.suites.description} <span className="text-muted-foreground">{runsLabels.suites.optional}</span></label>
+            <Input id="suite-description" name="description" value={description} onChange={(event) => setDescription(event.target.value)} />
+            <Button type="submit" disabled={mutations.busy}>
+              <FolderPlus data-icon="inline-start" /> {runsLabels.suites.create}
+            </Button>
+          </form>
+        )}
+      </NewActionSheet>
     </div>
   );
 }

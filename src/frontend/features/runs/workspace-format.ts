@@ -224,3 +224,195 @@ export function reviewedShare(snapshot: EvalWorkspaceResponse): number | null {
   ).length;
   return Math.round((reviewed / snapshot.results.length) * 100);
 }
+
+export const PASS_SCORE_THRESHOLD = 4;
+
+type RuntimeLike = {
+  provider?: string | null;
+  model?: string | null;
+  temperature?: number | null;
+} | null;
+
+export type RuntimeIdentity = {
+  key: string;
+  provider: string;
+  model: string;
+  temperature: number | null;
+};
+
+export function runtimeIdentity(runtime: RuntimeLike): RuntimeIdentity {
+  const provider = runtime?.provider ?? "?";
+  const model = runtime?.model ?? "?";
+  const temperature = runtime?.temperature ?? null;
+  return { key: `${provider}|${model}|${temperature}`, provider, model, temperature };
+}
+
+export function resultsForSuite(
+  snapshot: EvalWorkspaceResponse,
+  suiteId: string | null,
+): EvalResultItem[] {
+  const runIds = new Set(runsForSuite(snapshot, suiteId).map((run) => run.runId));
+  return snapshot.results.filter((result) => runIds.has(result.runId));
+}
+
+function resolveRuntime(
+  snapshot: EvalWorkspaceResponse,
+  result: EvalResultItem,
+): RuntimeLike {
+  const run = snapshot.runs.find((item) => item.runId === result.runId);
+  return result.runtime ?? run?.runtime ?? null;
+}
+
+function meanLatency(results: EvalResultItem[]): number | null {
+  const recorded = results.flatMap((result) =>
+    result.latencyMs === null || result.latencyMs === undefined
+      ? []
+      : [result.latencyMs],
+  );
+  if (recorded.length === 0) return null;
+  return recorded.reduce((total, value) => total + value, 0) / recorded.length;
+}
+
+export type RuntimeLeaderboardRow = {
+  identity: RuntimeIdentity;
+  runtime: RuntimeLike;
+  meanScore: number | null;
+  passRate: number | null;
+  annotatedCount: number;
+  meanLatency: number | null;
+  resultCount: number;
+  failedCount: number;
+  coveredCases: number;
+};
+
+export function buildRuntimeLeaderboard(
+  snapshot: EvalWorkspaceResponse,
+  suiteId: string | null,
+): RuntimeLeaderboardRow[] {
+  const results = resultsForSuite(snapshot, suiteId);
+  const scoreByResult = new Map(
+    snapshot.annotations.map((item) => [item.resultId, item.score]),
+  );
+  const groups = new Map<
+    string,
+    { identity: RuntimeIdentity; runtime: RuntimeLike; results: EvalResultItem[] }
+  >();
+
+  for (const result of results) {
+    const runtime = resolveRuntime(snapshot, result);
+    const identity = runtimeIdentity(runtime);
+    const group = groups.get(identity.key);
+    if (group) {
+      group.results.push(result);
+    } else {
+      groups.set(identity.key, { identity, runtime, results: [result] });
+    }
+  }
+
+  const rows = [...groups.values()].map(({ identity, runtime, results: group }) => {
+    const scores = group
+      .map((result) => scoreByResult.get(result.resultId))
+      .filter((score): score is number => typeof score === "number");
+    const meanScore =
+      scores.length === 0
+        ? null
+        : scores.reduce((sum, score) => sum + score, 0) / scores.length;
+    const passRate =
+      scores.length === 0
+        ? null
+        : scores.filter((score) => score >= PASS_SCORE_THRESHOLD).length /
+          scores.length;
+    const failedCount = group.filter(
+      (result) => result.status === "failed",
+    ).length;
+    const coveredCases = new Set(group.map((result) => result.caseId)).size;
+    return {
+      identity,
+      runtime,
+      meanScore,
+      passRate,
+      annotatedCount: scores.length,
+      meanLatency: meanLatency(group),
+      resultCount: group.length,
+      failedCount,
+      coveredCases,
+    };
+  });
+
+  return rows.sort((left, right) => {
+    const leftScore = left.meanScore ?? -1;
+    const rightScore = right.meanScore ?? -1;
+    if (rightScore !== leftScore) return rightScore - leftScore;
+    const leftLatency = left.meanLatency ?? Number.POSITIVE_INFINITY;
+    const rightLatency = right.meanLatency ?? Number.POSITIVE_INFINITY;
+    if (leftLatency !== rightLatency) return leftLatency - rightLatency;
+    return left.identity.key.localeCompare(right.identity.key);
+  });
+}
+
+export type MatrixCell = {
+  result: EvalResultItem;
+  score: number | null;
+  count: number;
+} | null;
+
+export type SuiteMatrix = {
+  cases: EvalCaseItem[];
+  columns: Array<{ identity: RuntimeIdentity; runtime: RuntimeLike }>;
+  cellFor: (caseId: string, runtimeKey: string) => MatrixCell;
+  bestScoreFor: (caseId: string) => number | null;
+};
+
+export function buildSuiteMatrix(
+  snapshot: EvalWorkspaceResponse,
+  suiteId: string | null,
+): SuiteMatrix {
+  const cases = casesForSuite(snapshot, suiteId);
+  const results = resultsForSuite(snapshot, suiteId);
+  const scoreByResult = new Map(
+    snapshot.annotations.map((item) => [item.resultId, item.score]),
+  );
+  const columns: Array<{ identity: RuntimeIdentity; runtime: RuntimeLike }> = [];
+  const columnKeys = new Set<string>();
+  const cells = new Map<string, MatrixCell>();
+
+  for (const result of results) {
+    const runtime = resolveRuntime(snapshot, result);
+    const identity = runtimeIdentity(runtime);
+    if (!columnKeys.has(identity.key)) {
+      columnKeys.add(identity.key);
+      columns.push({ identity, runtime });
+    }
+    const cellKey = `${result.caseId}::${identity.key}`;
+    const existing = cells.get(cellKey);
+    const isNewer =
+      !existing ||
+      result.createdAt.localeCompare(existing.result.createdAt) > 0;
+    const chosen = isNewer ? result : existing.result;
+    cells.set(cellKey, {
+      result: chosen,
+      score: scoreByResult.get(chosen.resultId) ?? null,
+      count: (existing?.count ?? 0) + 1,
+    });
+  }
+
+  columns.sort((left, right) =>
+    left.identity.key.localeCompare(right.identity.key),
+  );
+
+  return {
+    cases,
+    columns,
+    cellFor: (caseId, runtimeKey) => cells.get(`${caseId}::${runtimeKey}`) ?? null,
+    bestScoreFor: (caseId) => {
+      let best: number | null = null;
+      for (const column of columns) {
+        const cell = cells.get(`${caseId}::${column.identity.key}`);
+        if (cell?.score !== null && cell?.score !== undefined) {
+          best = best === null ? cell.score : Math.max(best, cell.score);
+        }
+      }
+      return best;
+    },
+  };
+}

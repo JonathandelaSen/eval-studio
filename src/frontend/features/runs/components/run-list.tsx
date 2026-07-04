@@ -13,6 +13,8 @@ import {
   type EvalRunItem,
 } from "../workspace-format";
 import { RuntimeChip, ScoreDots } from "./runtime-chip";
+import { RunStatusBadge } from "./run-status-badge";
+
 
 export function RunList({
   snapshot,
@@ -85,9 +87,7 @@ function RunCard({
             <ScoreDots score={average} labelWhenEmpty={runsLabels.runs.noScore} />
           </div>
         </div>
-        <span className="w-fit rounded-full border px-2 py-0.5 font-mono text-[9px] uppercase tracking-wide text-muted-foreground">
-          {run.status.replaceAll("_", " ")}
-        </span>
+        <RunStatusBadge status={run.status} className="w-fit" />
         <div className="flex w-full flex-wrap items-center justify-between gap-2">
           <span className="font-mono text-[9px] text-muted-foreground select-none">
             {formatDate(run.createdAt)}

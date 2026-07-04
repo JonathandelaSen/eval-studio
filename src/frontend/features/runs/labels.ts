@@ -2,6 +2,7 @@ export const runsLabels = {
   views: {
     runs: "Runs",
     cases: "Cases",
+    stats: "Stats",
     files: "JSON files",
   },
   rail: {
@@ -125,6 +126,7 @@ export const runsLabels = {
     runColumn: "Run",
     modelColumn: "Model",
     statusColumn: "Status",
+    latencyColumn: "Latency",
     scoreColumn: "Score",
     noteEmpty: "No evaluation note for this case.",
     nameLabel: "Case name",
@@ -146,6 +148,27 @@ export const runsLabels = {
     deleting: "Deleting",
     confirmDelete: "Delete this case file from the workspace?",
     createdPrefix: "Created",
+  },
+  stats: {
+    title: "Suite statistics",
+    hint: "Decision support: compare runtimes across this suite. You judge.",
+    empty: "No results in this suite yet.",
+    leaderboardTitle: "Runtime leaderboard",
+    leaderboardHint:
+      "Grouped by provider, model and temperature. Score for ranking, pass rate for trust.",
+    matrixTitle: "Case × runtime matrix",
+    matrixHint: "Latest result per cell. Best score in each row is highlighted.",
+    runtimeColumn: "Runtime",
+    scoreColumn: "Score",
+    passRateColumn: "Pass ≥4",
+    latencyColumn: "Latency",
+    resultsColumn: "Results",
+    coverageColumn: "Coverage",
+    caseColumn: "Case",
+    unscored: "unscored",
+    noResults: "—",
+    passRateHint: "Share of scored results with a score of 4 or higher.",
+    coverageHint: "Cases with at least one result vs. total cases in the suite.",
   },
   suites: {
     label: "Suite",

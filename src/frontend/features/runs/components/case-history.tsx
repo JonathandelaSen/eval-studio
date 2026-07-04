@@ -12,6 +12,7 @@ import { runsLabels } from "../labels";
 import {
   annotationFor,
   formatDate,
+  formatLatency,
   resultsForCase,
   type EvalCaseItem,
 } from "../workspace-format";
@@ -44,6 +45,9 @@ export function CaseHistory({
                 <TableHead>{runsLabels.cases.runColumn}</TableHead>
                 <TableHead>{runsLabels.cases.modelColumn}</TableHead>
                 <TableHead>{runsLabels.cases.statusColumn}</TableHead>
+                <TableHead className="text-right">
+                  {runsLabels.cases.latencyColumn}
+                </TableHead>
                 <TableHead className="text-right">
                   {runsLabels.cases.scoreColumn}
                 </TableHead>
@@ -80,6 +84,9 @@ export function CaseHistory({
                       >
                         {result.status}
                       </LabelBadge>
+                    </TableCell>
+                    <TableCell className="text-right font-mono text-xs tabular-nums text-muted-foreground">
+                      {formatLatency(result.latencyMs)}
                     </TableCell>
                     <TableCell className="text-right font-mono text-xs tabular-nums">
                       {annotation ? annotation.score : "-"}

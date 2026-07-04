@@ -1,7 +1,21 @@
 import React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { NewCasePanel } from "./new-case-panel";
+
+vi.mock("@/frontend/components/shared/new-action-sheet", () => ({
+  NewActionSheet: ({
+    children,
+  }: {
+    children: React.ReactNode | ((close: () => void) => React.ReactNode);
+  }) => {
+    return (
+      <div>
+        {typeof children === "function" ? children(() => {}) : children}
+      </div>
+    );
+  },
+}));
 
 describe("NewCasePanel", () => {
   it("uses the user message as input and collects expected output as free text", () => {

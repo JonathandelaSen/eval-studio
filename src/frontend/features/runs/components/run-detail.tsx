@@ -20,6 +20,9 @@ import {
 import { ResultReview } from "./result-review";
 import { RunEditor } from "./run-editor";
 import { RuntimeChip, ScoreDots } from "./runtime-chip";
+import { RunStatusBadge } from "./run-status-badge";
+import { RunExecutionProgress } from "./run-execution-progress";
+
 
 export function RunDetail({
   snapshot,
@@ -63,9 +66,7 @@ export function RunDetail({
       <header className="rounded-lg border bg-card px-5 py-4 flex flex-col gap-3">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex flex-wrap items-center gap-x-3.5 gap-y-2">
-            <span className="rounded-full border px-2 py-1 font-mono text-[10px] uppercase tracking-wide text-muted-foreground">
-              {run.status.replaceAll("_", " ")}
-            </span>
+            <RunStatusBadge status={run.status} className="px-2.5 py-1 text-[10px]" />
             <RuntimeChip runtime={run.runtime} fallback={run.producer} />
             <ScoreDots score={average} labelWhenEmpty={runsLabels.runs.noScore} />
             <span className="font-mono text-[0.68rem] text-muted-foreground select-none">
@@ -197,7 +198,9 @@ export function RunDetail({
           </p>
         ) : null}
       </header>
-      {selectedResult ? (
+      {run.status === "running" || run.status === "queued" ? (
+        <RunExecutionProgress snapshot={snapshot} run={run} />
+      ) : selectedResult ? (
         <ResultReview
           snapshot={snapshot}
           result={selectedResult}
