@@ -23,6 +23,7 @@ export function NewRunPanel({
   const [provider, setProvider] = React.useState("");
   const [model, setModel] = React.useState("");
   const [name, setName] = React.useState("");
+  const [temperature, setTemperature] = React.useState("0");
 
   React.useEffect(() => {
     if (provider || catalog.length === 0) return;
@@ -40,13 +41,14 @@ export function NewRunPanel({
 
   async function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    const parsedTemp = parseFloat(temperature);
     await mutations.createRun({
       name: name.trim() || `${model} ${new Date().toISOString().slice(0, 16)}`,
       suiteId,
       caseIds: caseIdsForNewRun(testCase.caseId),
       provider,
       model,
-      temperature: 0,
+      temperature: isNaN(parsedTemp) ? 0 : parsedTemp,
     });
     setName("");
   }
@@ -77,6 +79,18 @@ export function NewRunPanel({
         <select id="run-model" name="model" required value={model} onChange={(event) => setModel(event.target.value)} className="h-10 rounded-md border bg-background px-3 text-sm">
           {(activeProvider?.models ?? []).map((item) => <option key={item.id} value={item.id}>{item.label}</option>)}
         </select>
+        <label htmlFor="run-temperature" className="text-xs font-medium">{runsLabels.newRun.temperatureLabel}</label>
+        <Input
+          id="run-temperature"
+          name="temperature"
+          type="number"
+          min="0"
+          max="2"
+          step="0.1"
+          required
+          value={temperature}
+          onChange={(event) => setTemperature(event.target.value)}
+        />
         <Button type="submit" disabled={mutations.busy || !provider || !model}>
           <Play data-icon="inline-start" /> {runsLabels.newRun.start}
         </Button>
