@@ -2,12 +2,15 @@ import { WorkspaceRoot } from "../../domain/value-objects/workspace-root.value-o
 import { CaseId } from "../../domain/value-objects/case-id.value-object";
 import { EvalCase } from "../../domain/entities/eval-case.entity";
 import type { EvalCaseRepository } from "../../domain/repositories/eval-case.repository";
+import type { JsonRecord } from "../../domain/entities/eval-workspace.entity";
 
 export type UpdateCaseInput = {
   workspaceRoot?: string;
   caseId: string;
   name?: string;
   note?: string | null;
+  input?: JsonRecord | null;
+  expectedOutput?: JsonRecord | null;
   systemInstruction?: string;
   userMessage?: string;
 };
@@ -41,6 +44,12 @@ export class UpdateCaseUseCase {
       name: input.name ?? primitives.name,
       note:
         input.note === undefined ? primitives.note : input.note ?? undefined,
+      input:
+        input.input === undefined ? primitives.input : input.input ?? undefined,
+      expectedOutput:
+        input.expectedOutput === undefined
+          ? primitives.expectedOutput
+          : input.expectedOutput ?? undefined,
       renderedPrompt,
     });
     return this.deps.caseRepository.save(workspaceRoot, updated);

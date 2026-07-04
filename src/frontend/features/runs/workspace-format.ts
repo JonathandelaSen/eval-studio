@@ -11,11 +11,43 @@ export function formatJson(value: unknown): string {
   return JSON.stringify(value, null, 2);
 }
 
+export function parseJsonObjectField(
+  value: string,
+): Record<string, unknown> | undefined {
+  if (!value.trim()) return undefined;
+  const parsed: unknown = JSON.parse(value);
+  if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
+    throw new Error("Enter a JSON object.");
+  }
+  return parsed as Record<string, unknown>;
+}
+
 export function promptText(prompt: unknown): string {
   if (!prompt || typeof prompt !== "object") return formatJson(prompt);
   const record = prompt as Record<string, unknown>;
   if (typeof record.text === "string") return record.text;
   if (typeof record.content === "string") return record.content;
+  if (Array.isArray(record.messages)) {
+    const messages = record.messages.flatMap((entry) => {
+      if (!entry || typeof entry !== "object") return [];
+      const message = entry as Record<string, unknown>;
+      if (
+        typeof message.role !== "string" ||
+        typeof message.content !== "string"
+      ) {
+        return [];
+      }
+      return [{ role: message.role, content: message.content }];
+    });
+    if (messages.length === record.messages.length) {
+      if (messages.length === 1 && messages[0].role === "user") {
+        return messages[0].content;
+      }
+      return messages
+        .map((message) => `[${message.role}]\n${message.content}`)
+        .join("\n\n");
+    }
+  }
   const { format: _format, ...rest } = record;
   return Object.keys(rest).length > 0 ? formatJson(rest) : "";
 }
@@ -43,6 +75,14 @@ export function runsForSuite(
     ? snapshot.runs.filter((run) => run.suiteId === suiteId)
     : [...snapshot.runs];
   return runs.sort((left, right) => right.createdAt.localeCompare(left.createdAt));
+}
+
+export function runsForCase(
+  runs: EvalRunItem[],
+  caseId: string | null,
+): EvalRunItem[] {
+  if (!caseId) return [];
+  return runs.filter((run) => run.caseIds.includes(caseId));
 }
 
 export function casesForSuite(
@@ -157,7 +197,23 @@ export function reviewedCount(
 
 export function formatLatency(latencyMs: number | null | undefined): string {
   if (latencyMs === null || latencyMs === undefined) return "-";
+  if (latencyMs >= 1_000) {
+    const seconds = Math.round((latencyMs / 1_000) * 10) / 10;
+    return `${seconds} s`;
+  }
   return `${latencyMs} ms`;
+}
+
+export function totalLatency(
+  results: ReadonlyArray<{ latencyMs?: number | null }>,
+): number | null {
+  const recorded = results.flatMap((result) =>
+    result.latencyMs === null || result.latencyMs === undefined
+      ? []
+      : [result.latencyMs],
+  );
+  if (recorded.length === 0) return null;
+  return recorded.reduce((total, latencyMs) => total + latencyMs, 0);
 }
 
 export function reviewedShare(snapshot: EvalWorkspaceResponse): number | null {

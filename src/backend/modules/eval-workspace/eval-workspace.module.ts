@@ -13,6 +13,7 @@ import { FilesystemWorkspaceJsonFileRepository } from "./infrastructure/filesyst
 import { FilesystemEvalSuiteRepository } from "./infrastructure/filesystem-eval-suite.repository";
 import { CreateSuiteUseCase } from "./application/use-cases/create-suite.use-case";
 import { CreateCaseUseCase } from "./application/use-cases/create-case.use-case";
+import { DeleteSuiteUseCase } from "./application/use-cases/delete-suite.use-case";
 
 export function createEvalWorkspaceModule() {
   const workspaceRepo = new FilesystemEvalWorkspaceRepository();
@@ -25,6 +26,7 @@ export function createEvalWorkspaceModule() {
   return {
     getEvalWorkspace: new GetEvalWorkspaceUseCase(workspaceRepo),
     createSuite: new CreateSuiteUseCase({ suiteRepository }),
+    deleteSuite: new DeleteSuiteUseCase({ suiteRepository }),
     createCase: new CreateCaseUseCase({ caseRepository, suiteRepository }),
     saveAnnotation: new SaveAnnotationUseCase(annotationRepo),
     updateCase: new UpdateCaseUseCase({ caseRepository }),

@@ -19,6 +19,8 @@ describe("CreateCaseUseCase", () => {
       suiteId: "550e8400-e29b-41d4-a716-446655440000",
       name: "Refund policy",
       note: "Stay grounded",
+      input: { question: "Can this item be returned?", daysSincePurchase: 45 },
+      expectedOutput: { answer: "No", criteria: ["Mentions the 30-day limit"] },
       systemInstruction: "Use only policy facts.",
       userMessage: "Can this item be returned?",
     });
@@ -26,6 +28,8 @@ describe("CreateCaseUseCase", () => {
     expect(created.toPrimitives()).toMatchObject({
       suiteId: "550e8400-e29b-41d4-a716-446655440000",
       name: "Refund policy",
+      input: { question: "Can this item be returned?", daysSincePurchase: 45 },
+      expectedOutput: { answer: "No", criteria: ["Mentions the 30-day limit"] },
       renderedPrompt: {
         format: "messages",
         messages: [

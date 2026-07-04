@@ -73,11 +73,9 @@ export function RunDetail({
             </span>
           </div>
           <div className="flex shrink-0 gap-1.5">
-            {run.status === "interrupted" ? (
-              <Button type="button" variant="outline" size="sm" onClick={() => mutations.retryRun(run.runId)} disabled={mutations.busy}>
-                <RotateCcw className="size-3" /> {runsLabels.runDetail.retryMissing}
-              </Button>
-            ) : null}
+            <Button type="button" variant="outline" size="sm" onClick={() => mutations.retryRun(run.runId)} disabled={mutations.busy}>
+              <RotateCcw aria-hidden="true" className="size-3" /> {runsLabels.runDetail.retry}
+            </Button>
             <Button
               type="button"
               variant="outline"

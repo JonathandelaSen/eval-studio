@@ -1,12 +1,13 @@
 "use client";
 
 import * as React from "react";
-import { FolderPlus } from "lucide-react";
+import { FolderPlus, Trash2 } from "lucide-react";
 import type { EvalWorkspaceResponse } from "@/app/api/workspace/responses";
 import { Button } from "@/frontend/components/ui/button";
 import { Input } from "@/frontend/components/ui/input";
 import type { WorkspaceMutations } from "../hooks/use-workspace-mutations";
 import { runsLabels } from "../labels";
+import { nextSuiteIdAfterDelete } from "../suite-selection";
 
 export function SuiteBar({
   snapshot,
@@ -16,7 +17,7 @@ export function SuiteBar({
 }: {
   snapshot: EvalWorkspaceResponse;
   suiteId: string | null;
-  onSelect: (value: string) => void;
+  onSelect: (value: string | null) => void;
   mutations: WorkspaceMutations;
 }) {
   const [name, setName] = React.useState("");
@@ -35,6 +36,14 @@ export function SuiteBar({
     }
   }
 
+  async function removeSuite() {
+    if (!suiteId || !window.confirm(runsLabels.suites.confirmDelete)) return;
+    const deleted = await mutations.deleteSuite(suiteId);
+    if (deleted) {
+      onSelect(nextSuiteIdAfterDelete(snapshot.suites, suiteId));
+    }
+  }
+
   return (
     <div className="flex flex-wrap items-end gap-3 rounded-lg border bg-card p-3">
       <label className="min-w-64 flex-1 text-xs font-medium text-muted-foreground" htmlFor="suite-select">
@@ -43,7 +52,7 @@ export function SuiteBar({
           id="suite-select"
           name="suiteId"
           value={suiteId ?? ""}
-          onChange={(event) => onSelect(event.target.value)}
+          onChange={(event) => onSelect(event.target.value || null)}
           className="mt-1 block h-10 w-full rounded-md border bg-background px-3 text-sm text-foreground"
           disabled={snapshot.suites.length === 0}
         >
@@ -53,6 +62,18 @@ export function SuiteBar({
           ))}
         </select>
       </label>
+      <Button
+        type="button"
+        variant="outline"
+        size="sm"
+        className="border-destructive/40 text-destructive hover:border-destructive hover:bg-destructive/10 hover:text-destructive"
+        aria-label={runsLabels.suites.delete}
+        onClick={removeSuite}
+        disabled={!suiteId || mutations.busy}
+      >
+        <Trash2 aria-hidden="true" className="size-3.5" />
+        {runsLabels.suites.delete}
+      </Button>
       <details className="min-w-72 flex-1">
         <summary className="cursor-pointer text-sm font-medium text-primary">{runsLabels.suites.new}</summary>
         <form onSubmit={submit} className="mt-2 grid gap-2" aria-label={runsLabels.suites.create}>

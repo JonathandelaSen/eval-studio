@@ -2,11 +2,14 @@ import { z } from "zod";
 import type { ApiErrorDescriptor } from "@/app/api/_shared/api-responses";
 
 const caseIdSchema = z.string().uuid();
+const jsonObjectSchema = z.record(z.string(), z.unknown());
 
 const updateCaseSchema = z
   .object({
     name: z.string().trim().min(1).optional(),
     note: z.string().trim().min(1).nullable().optional(),
+    input: jsonObjectSchema.nullable().optional(),
+    expectedOutput: jsonObjectSchema.nullable().optional(),
     systemInstruction: z.string().trim().optional(),
     userMessage: z.string().trim().min(1).optional(),
   })
@@ -14,8 +17,11 @@ const updateCaseSchema = z
     (value) =>
       value.name !== undefined ||
       value.note !== undefined ||
+      value.input !== undefined ||
+      value.expectedOutput !== undefined ||
+      value.systemInstruction !== undefined ||
       value.userMessage !== undefined,
-    "Provide a name, note, or prompt to update.",
+    "Provide a field to update.",
   );
 
 export type UpdateCaseRequest = z.infer<typeof updateCaseSchema>;

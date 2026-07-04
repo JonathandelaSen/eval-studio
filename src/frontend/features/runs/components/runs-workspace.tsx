@@ -11,12 +11,13 @@ import {
 } from "@/frontend/components/ui/tabs";
 import { useWorkspaceMutations } from "../hooks/use-workspace-mutations";
 import { runsLabels } from "../labels";
-import { casesForSuite, runsForSuite } from "../workspace-format";
+import { casesForSuite, runsForCase, runsForSuite } from "../workspace-format";
 import { CaseDetail } from "./case-detail";
 import { CaseList } from "./case-list";
 import { DiagnosticsPanel } from "./diagnostics-panel";
 import { NewRunPanel } from "./new-run-panel";
 import { RunDetail } from "./run-detail";
+import { RunCaseFilter } from "./run-case-filter";
 import { RunList } from "./run-list";
 import { WorkspaceFilesPanel } from "@/frontend/features/workspace-files";
 import { SuiteBar } from "./suite-bar";
@@ -32,13 +33,14 @@ export function RunsWorkspace({ snapshot }: { snapshot: EvalWorkspaceResponse })
   const [caseId, setCaseId] = React.useState<string | null>(null);
   const [resultId, setResultId] = React.useState<string | null>(null);
 
-  const runs = runsForSuite(snapshot, suiteId);
+  const suiteRuns = runsForSuite(snapshot, suiteId);
   const cases = casesForSuite(snapshot, suiteId);
-  const activeRun = runs.find((run) => run.runId === runId) ?? runs[0];
   const activeCase =
     cases.find((testCase) => testCase.caseId === caseId) ?? cases[0];
+  const runs = runsForCase(suiteRuns, activeCase?.caseId ?? null);
+  const activeRun = runs.find((run) => run.runId === runId) ?? runs[0];
 
-  function selectSuite(next: string) {
+  function selectSuite(next: string | null) {
     setSuiteId(next);
     setRunId(null);
     setCaseId(null);
@@ -47,6 +49,12 @@ export function RunsWorkspace({ snapshot }: { snapshot: EvalWorkspaceResponse })
 
   function selectRun(next: string) {
     setRunId(next);
+    setResultId(null);
+  }
+
+  function selectCase(next: string) {
+    setCaseId(next);
+    setRunId(null);
     setResultId(null);
   }
 
@@ -82,6 +90,11 @@ export function RunsWorkspace({ snapshot }: { snapshot: EvalWorkspaceResponse })
           <TabsContent value="runs" className="mt-3">
             {!suiteId ? <EmptyWorkspace /> : <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-[320px_minmax(0,1fr)]">
               <div className="flex min-w-0 flex-col gap-3">
+                <RunCaseFilter
+                  cases={cases}
+                  selectedCaseId={activeCase?.caseId ?? null}
+                  onSelectCase={selectCase}
+                />
                 <RunList
                   snapshot={snapshot}
                   runs={runs}
@@ -110,7 +123,7 @@ export function RunsWorkspace({ snapshot }: { snapshot: EvalWorkspaceResponse })
           <TabsContent value="cases" className="mt-3">
             {!suiteId ? <EmptyWorkspace /> : <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-[320px_minmax(0,1fr)]">
               <div className="flex min-w-0 flex-col gap-3">
-                <CaseList snapshot={snapshot} cases={cases} selectedCaseId={activeCase?.caseId ?? null} onSelectCase={setCaseId} />
+                <CaseList snapshot={snapshot} cases={cases} selectedCaseId={activeCase?.caseId ?? null} onSelectCase={selectCase} />
                 <NewCasePanel suiteId={suiteId} mutations={mutations} />
               </div>
               {activeCase ? (

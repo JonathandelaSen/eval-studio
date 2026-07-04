@@ -5,6 +5,7 @@ import { CaseId } from "../domain/value-objects/case-id.value-object";
 import { EvalCase } from "../domain/entities/eval-case.entity";
 import { CaseNotFoundError } from "../domain/errors/case-not-found.error";
 import type { EvalCaseRepository } from "../domain/repositories/eval-case.repository";
+import { locateSuiteFile } from "./filesystem-eval-suite-locator";
 
 export class FilesystemEvalCaseRepository implements EvalCaseRepository {
   constructor() {}
@@ -28,7 +29,10 @@ export class FilesystemEvalCaseRepository implements EvalCaseRepository {
     } catch (error) {
       if (!(error instanceof CaseNotFoundError)) throw error;
       const root = this.requiredRoot(workspaceRoot?.toPrimitives());
-      const directory = this.safeJoin(root, "suites", primitives.suiteId, "cases");
+      const suiteFile = await locateSuiteFile(root, primitives.suiteId);
+      const directory = suiteFile
+        ? path.join(path.dirname(suiteFile), "cases")
+        : this.safeJoin(root, "suites", primitives.suiteId, "cases");
       await fs.mkdir(directory, { recursive: true });
       file = this.safeJoin(directory, `${primitives.caseId}.case.json`);
     }

@@ -54,7 +54,7 @@ export function ResultReview({
   const expectedText = testCase?.expectedOutput ? (readableText(testCase.expectedOutput)?.trim() ?? "") : "";
   const criteria = criteriaList(testCase?.expectedOutput);
   
-  const promptTextVal = promptText(result.renderedPrompt)?.trim() ?? "";
+  const promptTextVal = promptText(result.renderedPrompt) ?? "";
   const fallbackInput = testCase?.input ? (readableText(testCase.input)?.trim() ?? "") : "";
   const displayPrompt = promptTextVal || fallbackInput;
 

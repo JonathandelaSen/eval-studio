@@ -14,6 +14,8 @@ const casePrimitives: EvalCasePrimitives = {
   suiteId: "550e8400-e29b-41d4-a716-446655440000",
   name: "Summarize invoice",
   note: "Focus on totals",
+  input: { invoiceId: "inv-1" },
+  expectedOutput: { currency: "EUR" },
   createdAt: "2026-07-01T00:00:00.000Z",
   renderedPrompt: { format: "text", text: "Summarize this invoice." },
 };
@@ -79,6 +81,32 @@ describe("UpdateCaseUseCase", () => {
         { role: "user", content: "Summarize this invoice." },
       ],
     });
+  });
+
+  it("updates input and expected output", async () => {
+    const updated = await useCase().execute({
+      workspaceRoot,
+      caseId,
+      input: { invoiceId: "inv-2", includeTax: true },
+      expectedOutput: { currency: "USD", total: 125 },
+    });
+
+    expect(updated.toPrimitives()).toMatchObject({
+      input: { invoiceId: "inv-2", includeTax: true },
+      expectedOutput: { currency: "USD", total: 125 },
+    });
+  });
+
+  it("clears input and expected output with null", async () => {
+    const updated = await useCase().execute({
+      workspaceRoot,
+      caseId,
+      input: null,
+      expectedOutput: null,
+    });
+
+    expect(updated.toPrimitives().input).toBeUndefined();
+    expect(updated.toPrimitives().expectedOutput).toBeUndefined();
   });
 
   it("rejects an empty name", async () => {

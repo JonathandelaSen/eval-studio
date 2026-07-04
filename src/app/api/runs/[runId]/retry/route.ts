@@ -3,6 +3,7 @@ import { created, errorResponse } from "@/app/api/_shared/api-responses";
 import { evalExecutionModule, evalWorkspaceModule, projectModule } from "@/lib/container";
 import { startRunJob } from "@/lib/run-jobs";
 import { toCreateRunResponse } from "../../responses";
+import { retryCaseIds } from "./retry-case-ids";
 
 export const runtime = "nodejs";
 
@@ -19,11 +20,10 @@ export async function POST(
     if (!source || !source.runtime) {
       return errorResponse({ status: 404, code: "run_not_found", message: "Run not found." });
     }
-    const completed = new Set(snapshot.results.filter((item) => item.runId === source.runId).map((item) => item.caseId));
-    const caseIds = source.caseIds.filter((caseId) => !completed.has(caseId));
-    if (caseIds.length === 0) {
-      return errorResponse({ status: 400, code: "nothing_to_retry", message: "This run has no missing cases." });
-    }
+    const caseIds = retryCaseIds(
+      source.caseIds,
+      snapshot.results.filter((item) => item.runId === source.runId),
+    );
     const cases = snapshot.cases.filter((item) => caseIds.includes(item.caseId));
     const run = await evalExecutionModule.createRun.execute({
       workspaceRoot,

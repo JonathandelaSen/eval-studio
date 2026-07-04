@@ -26,6 +26,17 @@ describe("parseUpdateCaseRequest", () => {
     expect(parsed).toEqual({ ok: true, value: { note: null } });
   });
 
+  it("accepts JSON objects and clearing them with null", () => {
+    expect(parseUpdateCaseRequest({ input: { invoiceId: "inv-2" } })).toEqual({
+      ok: true,
+      value: { input: { invoiceId: "inv-2" } },
+    });
+    expect(parseUpdateCaseRequest({ expectedOutput: null })).toEqual({
+      ok: true,
+      value: { expectedOutput: null },
+    });
+  });
+
   it("rejects an empty update", () => {
     expect(parseUpdateCaseRequest({}).ok).toBe(false);
   });

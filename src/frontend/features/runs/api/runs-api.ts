@@ -5,6 +5,7 @@ import type {
 } from "@/app/api/cases/[caseId]/responses";
 import type { CreateRunResponse } from "@/app/api/runs/responses";
 import type { CreateSuiteResponse } from "@/app/api/suites/responses";
+import type { DeleteSuiteResponse } from "@/app/api/suites/[suiteId]/responses";
 import type { CreateCaseResponse } from "@/app/api/cases/responses";
 import type { ProvidersResponse } from "@/app/api/providers/responses";
 import type {
@@ -32,6 +33,8 @@ export type UpdateRunPayload = {
 export type UpdateCasePayload = {
   name?: string;
   note?: string | null;
+  input?: Record<string, unknown> | null;
+  expectedOutput?: Record<string, unknown> | null;
   systemInstruction?: string;
   userMessage?: string;
 };
@@ -41,6 +44,8 @@ export type CreateCasePayload = {
   suiteId: string;
   name: string;
   note?: string;
+  input?: Record<string, unknown>;
+  expectedOutput?: Record<string, unknown>;
   systemInstruction?: string;
   userMessage: string;
 };
@@ -70,6 +75,14 @@ export async function createSuite(payload: CreateSuitePayload): Promise<CreateSu
   return readJsonResponse<CreateSuiteResponse>(await fetch("/api/suites", {
     method: "POST", headers: jsonHeaders, body: JSON.stringify(payload),
   }));
+}
+
+export async function deleteSuite(suiteId: string): Promise<DeleteSuiteResponse> {
+  return readJsonResponse<DeleteSuiteResponse>(
+    await fetch(`/api/suites/${encodeURIComponent(suiteId)}`, {
+      method: "DELETE",
+    }),
+  );
 }
 
 export async function createCase(payload: CreateCasePayload): Promise<CreateCaseResponse> {
