@@ -2,27 +2,32 @@
 
 import * as React from "react";
 import { FolderPlus, Trash2 } from "lucide-react";
+import { useRouter } from "next/navigation";
 import type { EvalWorkspaceResponse } from "@/app/api/workspace/responses";
 import { Button } from "@/frontend/components/ui/button";
 import { Input } from "@/frontend/components/ui/input";
 import type { WorkspaceMutations } from "../hooks/use-workspace-mutations";
 import { runsLabels } from "../labels";
 import { nextSuiteIdAfterDelete } from "../suite-selection";
+import { suiteCasesPath } from "../routes";
 import { NewActionSheet } from "@/frontend/components/shared/new-action-sheet";
 
 export function SuiteBar({
   snapshot,
   suiteId,
-  onSelect,
   mutations,
 }: {
   snapshot: EvalWorkspaceResponse;
   suiteId: string | null;
-  onSelect: (value: string | null) => void;
   mutations: WorkspaceMutations;
 }) {
+  const router = useRouter();
   const [name, setName] = React.useState("");
   const [description, setDescription] = React.useState("");
+
+  function goToSuite(nextSuiteId: string | null) {
+    router.push(nextSuiteId ? suiteCasesPath(nextSuiteId) : "/");
+  }
 
   async function submit(event: React.FormEvent<HTMLFormElement>, close: () => void) {
     event.preventDefault();
@@ -33,7 +38,7 @@ export function SuiteBar({
     if (created) {
       setName("");
       setDescription("");
-      onSelect(created.suiteId);
+      goToSuite(created.suiteId);
       close();
     }
   }
@@ -42,7 +47,7 @@ export function SuiteBar({
     if (!suiteId || !window.confirm(runsLabels.suites.confirmDelete)) return;
     const deleted = await mutations.deleteSuite(suiteId);
     if (deleted) {
-      onSelect(nextSuiteIdAfterDelete(snapshot.suites, suiteId));
+      goToSuite(nextSuiteIdAfterDelete(snapshot.suites, suiteId));
     }
   }
 
@@ -54,7 +59,7 @@ export function SuiteBar({
           id="suite-select"
           name="suiteId"
           value={suiteId ?? ""}
-          onChange={(event) => onSelect(event.target.value || null)}
+          onChange={(event) => goToSuite(event.target.value || null)}
           className="mt-1 block h-10 w-full rounded-md border bg-background px-3 text-sm text-foreground"
           disabled={snapshot.suites.length === 0}
         >

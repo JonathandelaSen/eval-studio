@@ -24,10 +24,12 @@ export function CaseDetail({
   snapshot,
   testCase,
   mutations,
+  onDeleted,
 }: {
   snapshot: EvalWorkspaceResponse;
   testCase: EvalCaseItem;
   mutations: WorkspaceMutations;
+  onDeleted?: () => void;
 }) {
   const [editing, setEditing] = React.useState(false);
   const expectedText = readableText(testCase.expectedOutput)?.trim();
@@ -35,7 +37,8 @@ export function CaseDetail({
 
   async function removeCase() {
     if (!window.confirm(runsLabels.cases.confirmDelete)) return;
-    await mutations.deleteCase(testCase.caseId);
+    const deleted = await mutations.deleteCase(testCase.caseId);
+    if (deleted) onDeleted?.();
   }
 
   return (

@@ -31,6 +31,7 @@ export function RunDetail({
   onSelectResult,
   mutations,
   onSelectCase,
+  onDeleted,
 }: {
   snapshot: EvalWorkspaceResponse;
   run: EvalRunItem;
@@ -38,6 +39,7 @@ export function RunDetail({
   onSelectResult: (resultId: string) => void;
   mutations: WorkspaceMutations;
   onSelectCase?: (caseId: string) => void;
+  onDeleted?: () => void;
 }) {
   const [editing, setEditing] = React.useState(false);
   const results = resultsForRun(snapshot, run.runId);
@@ -58,7 +60,8 @@ export function RunDetail({
 
   async function removeRun() {
     if (!window.confirm(runsLabels.runDetail.confirmDelete)) return;
-    await mutations.deleteRun(run.runId);
+    const deleted = await mutations.deleteRun(run.runId);
+    if (deleted) onDeleted?.();
   }
 
   return (
